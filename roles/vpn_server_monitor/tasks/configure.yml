@@ -23,7 +23,7 @@
 
 - name: Add nginx server file for openvpn-monitor
   ansible.builtin.copy:
-    dest: /etc/nginx/conf.d/{{ NGINX_OPENVPN_MONITOR }}-openvpn-monitor.conf
+    dest: /etc/nginx/conf.d/{{ NGINX_OPENVPN_MONITOR_PREFIX }}-openvpn-monitor.conf
     mode: '0644'
     content: |
       server {
