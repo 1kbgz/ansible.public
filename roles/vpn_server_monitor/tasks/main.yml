@@ -1,12 +1,9 @@
 ---
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yml
-  when: inventory_hostname is match(INVENTORY_NAME_VPN)
 
 - name: Configure openvpn-monitor
   ansible.builtin.include_tasks: configure.yml
-  when: inventory_hostname is match(INVENTORY_NAME_VPN)
 
 - name: Setup Virtualenv
   ansible.builtin.include_tasks: venv.yml
-  when: inventory_hostname is match(INVENTORY_NAME_VPN)

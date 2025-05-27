@@ -9,7 +9,7 @@
     append: true
   become: true
   loop: "{{ USERS }}"
-  when: AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)
+  when: AUTH_SOURCE != 'ipa'
   # NOTE: external managed by IPA
 
 - name: Add the automation users
@@ -22,7 +22,7 @@
     append: true
   become: true
   loop: "{{ AUTOMATION_USERS | dict2items }}"
-  when: AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)
+  when: AUTH_SOURCE != 'ipa'
   # NOTE: external managed by IPA
 
 - name: Add the service users
@@ -35,5 +35,5 @@
     append: true
   become: true
   loop: "{{ SERVICE_USERS | dict2items }}"
-  when: AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)
+  when: AUTH_SOURCE != 'ipa'
   # NOTE: external managed by IPA
