@@ -1,0 +1,15 @@
+---
+namespace: ansible
+name: public
+version: 0.1.0
+readme: README.md
+authors:
+  - 1kbgz (github.com/1kbgz)
+description: "1kbgz ansible collections"
+license_file: LICENSE
+repository: https://github.com/1kbgz/ansible.public
+homepage: https://github.com/1kbgz/ansible.public
+issues: https://github.com/1kbgz/ansible.public/issues
+build_ignore:
+  - .gitignore
+  - .github

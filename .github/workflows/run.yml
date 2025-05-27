@@ -1,0 +1,44 @@
+name: Run Playbooks
+
+on:
+  workflow_dispatch:
+    inputs:
+      playbook:
+        description: 'Playbook to run'
+        required: true
+        default: 'vpn'
+        type: choice
+        options:
+          - vpn
+          - dev
+  # schedule:
+  #   # Scheduled runs should match block below
+  #   - cron: '0 0 * * *' # dev: midnight
+
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    concurrency:
+        group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions-ext/python/setup@main
+      with:
+        version: 3.11
+    - run: uv pip install ansible ansible-lint
+    - run: |
+        mkdir -p ~/.ssh/
+        eval `ssh-agent -s`
+        echo -e "${{secrets.SSH_KEY}}" | tr -d '\r' > ~/.ssh/id_rsa
+        chmod 700 ~/.ssh/id_rsa
+        ssh-add ~/.ssh/id_rsa
+        ssh-keyscan -t rsa,dsa,ecdsa,ed25519 ${{secrets.SSH_HOST}} >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+      shell: bash
+    - run: make ${{inputs.playbook}}
+      if: github.event_name == 'workflow_dispatch'
+
+    # # Scheduled runs
+    # - run: make dev
+    #   if: github.event_name == 'schedule' && github.event.schedule == '0 0 * * *'

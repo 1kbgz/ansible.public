@@ -1,0 +1,14 @@
+---
+- name: Enable traffic in default zone for https service
+  ansible.posix.firewalld:
+    service: https
+    permanent: true
+    state: enabled
+  notify: Restart firewalld
+
+- name: Enable traffic in default zone for http service
+  ansible.posix.firewalld:
+    service: http
+    permanent: true
+    state: enabled
+  notify: Restart firewalld

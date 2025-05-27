@@ -1,0 +1,16 @@
+---
+- name: Include EL specific tasks
+  ansible.builtin.include_tasks: el.yml
+  when: OS == 'EL'
+
+- name: Include Ubuntu specific tasks
+  ansible.builtin.include_tasks: ubuntu.yml
+  when: OS == 'Ubuntu'
+
+- name: Configure nginx
+  ansible.builtin.include_tasks: configure.yml
+  when: not inventory_hostname is match(INVENTORY_NAME_IPA)
+
+- name: Run nginx with systemd
+  ansible.builtin.include_tasks: run-systemd.yml
+  when: not inventory_hostname is match(INVENTORY_NAME_IPA)

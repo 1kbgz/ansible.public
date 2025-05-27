@@ -1,0 +1,50 @@
+---
+- name: Create src directory if it does not exist
+  ansible.builtin.file:
+    path: /opt/src
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Create repos directory if it does not exist
+  ansible.builtin.file:
+    path: /opt/repos
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Create home directory for mount
+  ansible.builtin.file:
+    path: /mnt
+    state: directory
+    mode: '0775'
+    owner: root
+    group: "{{ ROOT_USER_GROUP }}"
+  become: true
+
+- name: Create home directory for mount
+  ansible.builtin.file:
+    path: /mnt/home
+    state: directory
+    mode: '0775'
+    owner: root
+    group: "{{ ROOT_USER_GROUP }}"
+  become: true
+
+- name: Create data directory for mount
+  ansible.builtin.file:
+    path: /data
+    state: directory
+    mode: '0775'
+    owner: root
+    group: "{{ ROOT_USER_GROUP }}"
+  become: true
+
+- name: Create home directory for mount
+  ansible.builtin.file:
+    path: /mnt/home
+    state: directory
+    mode: '0775'
+    owner: root
+    group: "{{ ROOT_USER_GROUP }}"
+  become: true

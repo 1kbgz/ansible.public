@@ -1,0 +1,55 @@
+---
+- name: Install the 'Development tools' package group
+  ansible.builtin.dnf:
+    name: "@Development tools"
+    state: present
+  when: OS == 'EL'
+
+- name: Install epel-release
+  ansible.builtin.dnf:
+    name:
+      - epel-release
+    state: present
+  when: OS == 'EL'
+
+- name: Install the "build essential" tools
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+  when: OS == 'Ubuntu'
+
+- name: Install "core" packages
+  ansible.builtin.dnf:
+    name: "{{ packages.EL }}"
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'EL'
+
+- name: Install "core" packages
+  ansible.builtin.apt:
+    name: "{{ packages.Ubuntu }}"
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'Ubuntu'
+
+- name: Add gpg signing key for chrome
+  ansible.builtin.apt_key:
+    url: https://dl.google.com/linux/linux_signing_key.pub
+    state: present
+  when: OS == 'Ubuntu'
+
+- name: Adding repository for chrome
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main"
+    state: present
+    filename: google-chrome
+    update_cache: true
+  when: OS == 'Ubuntu'
+
+- name: Installing google-chrome-stable
+  ansible.builtin.apt:
+    name: google-chrome-stable
+    state: present
+    force_apt_get: true
+    update_cache: true
+  when: OS == 'Ubuntu'
