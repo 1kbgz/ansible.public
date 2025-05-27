@@ -1,7 +1,7 @@
 ---
 - name: Restart cron
   ansible.builtin.systemd:
-    name: cron
+    name: "{{ 'crond' if OS == 'EL' else 'cron' }}"
     state: restarted
     enabled: true
 
