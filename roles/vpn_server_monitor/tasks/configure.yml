@@ -1,56 +1,4 @@
 ---
-- name: Create openvpn-monitor working folder
-  ansible.builtin.file:
-    path: /var/lib/openvpn-monitor
-    state: directory
-    mode: '0755'
-    owner: vpnmon
-    group: services
-  become: true
-
-- name: Create openvpn-monitor log folder
-  ansible.builtin.file:
-    path: /var/log/openvpn-monitor
-    state: directory
-    mode: '0755'
-    owner: vpnmon
-    group: services
-  become: true
-
-# - name: Setup uwsgi config
-#   ansible.builtin.copy:
-#     dest: /etc/uwsgi/apps-available/openvpn-monitor.ini
-#     mode: '0755'
-#     owner: vpnmon
-#     group: services
-#     content: |
-#       [uwsgi]
-#       base = /var/lib/
-#       project = openvpn-monitor
-#       logto = /var/log/openvpn-monitor/%(project).log
-#       plugins = python3
-#       chmod-socket = 774
-#       chown-socket = vpnmon:services
-#       uid = vpnmon
-#       gid = services
-#       chdir = %(base)/%(project)
-#       virtualenv = /var/lib/venvs/openvpn-monitor
-#       module = openvpn-monitor:application
-#       manage-script-name = true
-#       mount=/=openvpn-monitor.py
-#   become: true
-#   when: "inventory_hostname is match('vpn*')"
-
-# - name: Link uwsgi config
-#   ansible.builtin.file:
-#     src: /etc/uwsgi/apps-available/openvpn-monitor.ini
-#     dest: /etc/uwsgi/apps-enabled/openvpn-monitor.ini
-#     mode: '0755'
-#     owner: vpnmon
-#     group: services
-#     state: link
-#   become: true
-
 - name: Setup openvpn-monitor config
   ansible.builtin.copy:
     dest: /etc/openvpn-monitor/openvpn-monitor.conf
@@ -105,6 +53,8 @@
               proxy_read_timeout 90;
           }
       }
+  notify:
+    - Restart nginx
   become: true
 
 - name: Add domain mappings to /etc/hosts
@@ -113,4 +63,31 @@
     block: |
       {{ VPN_BASE_IP }} vpn-monitor.{{ inventory_hostname }}
     marker: "# {mark} ANSIBLE MANAGED BLOCK vpn-monitor.{{ inventory_hostname }}"
+  become: true
+
+- name: Copy openvpn-monitor service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/openvpn-monitor.service
+    mode: '0644'
+    owner: root
+    group: "{{ ROOT_USER_GROUP }}"
+    content: |
+      [Unit]
+      Description=Openvpn-monitor
+      Wants=network.target
+      After=network.target
+
+      [Service]
+      User=vpnmon
+      Type=simple
+      ExecStart=/var/lib/venvs/openvpn-monitor/bin/gunicorn openvpn_monitor.app -b 127.0.0.1:{{ PORTS_VPN_MONITOR }}
+      Restart=on-failure
+      RestartSec=5s
+      PrivateTmp=true
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload systemd
+    - Restart openvpn-monitor
   become: true

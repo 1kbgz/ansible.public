@@ -66,6 +66,7 @@ packages:
     - dnsmasq
     - fail2ban
     - firewalld
+    - geoip-database
     - git
     - git-lfs
     - golang

@@ -1,6 +1,5 @@
 ---
 dependencies:
-  - role: python
   # - role: vpn-server
   - role: nginx
 
