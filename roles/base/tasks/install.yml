@@ -53,3 +53,10 @@
     force_apt_get: true
     update_cache: true
   when: OS == 'Ubuntu'
+
+- name: Add deadsnakes python
+  ansible.builtin.apt_repository:
+    validate_certs: false
+    repo: 'ppa:deadsnakes/ppa'
+    state: present
+  when: OS == 'Ubuntu'

@@ -1,0 +1,59 @@
+---
+- name: Create nginx etc directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/nginx
+    state: directory
+    mode: '0755'
+    owner: nginx
+    group: services
+  become: true
+
+- name: Create nginx etc/conf.d directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d
+    state: directory
+    mode: '0755'
+    owner: nginx
+    group: services
+  become: true
+
+- name: Create cache directory if it does not exist
+  ansible.builtin.file:
+    path: /var/cache/nginx
+    state: directory
+    mode: '0755'
+    owner: nginx
+    group: services
+
+- name: Create log directory if it does not exist
+  ansible.builtin.file:
+    path: /var/log/nginx
+    state: directory
+    mode: '0755'
+    owner: nginx
+    group: services
+
+- name: Create log files with correct permissions
+  ansible.builtin.file:
+    path: /var/log/nginx/{{ item.file }}
+    mode: '0644'
+    owner: nginx
+    group: services
+    state: touch
+  loop:
+    - { file: error.log }
+    - { file: access.log }
+
+- name: Create static directory
+  ansible.builtin.file:
+    path: /opt/www
+    state: directory
+    mode: '0755'
+  when: inventory_hostname is match(INVENTORY_NAME_DESKTOP)
+
+- name: Create static-public directory
+  ansible.builtin.file:
+    path: /opt/www-pub
+    state: directory
+    mode: '0755'
+  when: inventory_hostname is match(INVENTORY_NAME_DESKTOP)

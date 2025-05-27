@@ -3,10 +3,12 @@ packages:
     - autoconf
     - automake
     - boost-devel
+    - bzip2-devel
     - cmake
     - curl
     - fail2ban
     - firewalld
+    - gd-devel
     - git
     - git-lfs
     - golang
@@ -14,7 +16,10 @@ packages:
     - java-11-openjdk-devel
     - krb5-server
     - krb5-workstation
+    - libffi-devel
     - libmnl
+    - libxml2-devel
+    - libxslt-devel
     - libuuid-devel
     - lm_sensors
     - lsof
@@ -22,11 +27,20 @@ packages:
     - mlocate
     - nc
     - ncdu
+    - ncurses-devel
     - net-tools
+    - nginx
+    - openssl-devel
+    - compat-openssl11
+    - pcre-devel
+    - perl-ExtUtils-Embed
     - pkgconfig
+    - readline-devel
     - screen
     - tar
+    - tcl-devel
     - telnet
+    - tk-devel
     - tmux
     - unzip
     - wget
@@ -56,11 +70,18 @@ packages:
     - krb5-kdc
     - openjdk-11-jdk
     - libboost-dev
+    - libgd-dev
+    - libgeoip-dev
     - libkrb5-dev
     - libldap2-dev
     - libmnl-dev
+    - libpcre3-dev
+    - libperl-dev
     - libsasl2-dev
+    - libssl-dev
+    - libxml2-dev
     - libxmlsec1
+    - libxslt1-dev
     - libzstd-dev
     - lm-sensors
     - lsof
@@ -68,7 +89,9 @@ packages:
     - ncat
     - ncdu
     - net-tools
+    - nginx
     - nfs-common
+    - openssl
     - pkg-config
     - plocate
     - screen

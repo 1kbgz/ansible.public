@@ -7,10 +7,6 @@
       {{ inventory_hostname.replace(".local", "") }}
   become: true
 
-- name: Include EL specific tasks
-  ansible.builtin.include_tasks: el.yml
-  when: "OS == 'EL'"
-
-- name: Include Ubuntu specific tasks
-  ansible.builtin.include_tasks: ubuntu.yml
-  when: "OS == 'Ubuntu'"
+- name: Include Linux specific tasks
+  ansible.builtin.include_tasks: linux.yml
+  when: OS == 'EL' or OS == 'Ubuntu'
