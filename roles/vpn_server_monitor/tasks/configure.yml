@@ -70,7 +70,7 @@
     dest: /lib/systemd/system/openvpn-monitor.service
     mode: '0644'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: root
     content: |
       [Unit]
       Description=Openvpn-monitor

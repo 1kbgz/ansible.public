@@ -19,7 +19,7 @@
     state: directory
     mode: '0775'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: "{{ 'wheel' if OS == 'macOS' else 'root' }}"
   become: true
 
 - name: Create home directory for mount
@@ -28,7 +28,7 @@
     state: directory
     mode: '0775'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: "{{ 'wheel' if OS == 'macOS' else 'root' }}"
   become: true
 
 - name: Create data directory for mount
@@ -37,7 +37,7 @@
     state: directory
     mode: '0775'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: "{{ 'wheel' if OS == 'macOS' else 'root' }}"
   become: true
 
 - name: Create home directory for mount
@@ -46,5 +46,5 @@
     state: directory
     mode: '0775'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: "{{ 'wheel' if OS == 'macOS' else 'root' }}"
   become: true

@@ -1,10 +1,5 @@
 ---
-ROOT_USER_GROUP: root
-INVENTORY_NAME_VPN: vpn*
-INVENTORY_NAME_IPA: ipa*
-
 USERS: []
-
 AUTOMATION_USERS:
   DEV:
     username: svcdev
@@ -45,15 +40,3 @@ GROUPS:
     gid: 20
   - name: sudo
     gid: 21
-
-####################
-# Software         #
-####################
-# Ports
-PORTS_VPN_MONITOR: 6100
-PORTS_VPN_MANAGEMENT: 6101
-PORTS_PIHOLE: 9000
-
-# VPN
-VPN_HOSTS: []
-VPN_USERS: []
