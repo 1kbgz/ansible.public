@@ -4,6 +4,7 @@ packages:
     - automake
     - boost-devel
     - bzip2-devel
+    - ca-certificates
     - cmake
     - curl
     - dnsmasq
@@ -56,6 +57,7 @@ packages:
     - avahi-daemon
     - avahi-discover
     - avahi-utils
+    - ca-certificates
     - cifs-utils
     - cmake
     - cron
@@ -72,7 +74,6 @@ packages:
     - keyutils
     - krb5-admin-server
     - krb5-kdc
-    - openjdk-11-jdk
     - libboost-dev
     - libgd-dev
     - libgeoip-dev
@@ -96,6 +97,7 @@ packages:
     - net-tools
     - nginx
     - nfs-common
+    - openjdk-11-jdk
     - openssl
     - openvpn
     - openvpn-systemd-resolved
