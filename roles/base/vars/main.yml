@@ -6,6 +6,7 @@ packages:
     - bzip2-devel
     - cmake
     - curl
+    - dnsmasq
     - fail2ban
     - firewalld
     - gd-devel
@@ -31,6 +32,7 @@ packages:
     - net-tools
     - nginx
     - openssl-devel
+    - openvpn
     - compat-openssl11
     - pcre-devel
     - perl-ExtUtils-Embed
@@ -59,12 +61,14 @@ packages:
     - cron
     - curl
     - dconf-editor
+    - dnsmasq
     - fail2ban
     - firewalld
     - git
     - git-lfs
     - golang
     - htop
+    - ifupdown
     - keyutils
     - krb5-admin-server
     - krb5-kdc
@@ -83,6 +87,7 @@ packages:
     - libxmlsec1
     - libxslt1-dev
     - libzstd-dev
+    - lighttpd
     - lm-sensors
     - lsof
     - make
@@ -92,6 +97,8 @@ packages:
     - nginx
     - nfs-common
     - openssl
+    - openvpn
+    - openvpn-systemd-resolved
     - pkg-config
     - plocate
     - screen
@@ -110,3 +117,5 @@ packages:
     - Restart fail2ban
     - Restart firewalld
     - Restart resolved
+    - Stop lighttpd
+    - Stop dnsmasq
