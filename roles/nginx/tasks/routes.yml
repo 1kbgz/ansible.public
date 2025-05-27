@@ -2,7 +2,6 @@
 - name: Update server blocks for https-only
   ansible.builtin.blockinfile:
     path: /etc/nginx/nginx.conf
-
     marker: "### {mark} ANSIBLE MANAGED BLOCK - FORCE TLS"
     insertafter: "### BEGIN SERVERS"
     block: |
@@ -10,26 +9,28 @@
           listen 80;
           return 301 https://$host$request_uri;
         }
-  when: inventory_hostname is match(INVENTORY_NAME_DESKTOP)
+  notify: Restart nginx
 
 - name: Add servers for private routes
   ansible.builtin.copy:
-    dest: /etc/nginx/conf.d/{{ NGINX_PUBLIC_ROOT }}-public-root.conf
+    dest: /etc/nginx/conf.d/{{ NGINX_PUBLIC_ROOT_PREFIX }}-public-root.conf
     content: |
       server {
         server_name public.{{ ROOT_DOMAIN }};
         root /opt/www-pub/;
         autoindex on;
       }
-  when: inventory_hostname is match(INVENTORY_NAME_DESKTOP)
+  when: ROOT_DOMAIN is defined
+  notify: Restart nginx
 
 - name: Add servers for public routes
   ansible.builtin.copy:
-    dest: /etc/nginx/conf.d/{{ NGINX_PUBLIC_FQDN }}-public.conf
+    dest: /etc/nginx/conf.d/{{ NGINX_PUBLIC_FQDN_PREFIX }}-public.conf
     content: |
       server {
         server_name public.{{ inventory_hostname }};
         root /opt/www-pub/;
         autoindex on;
       }
-  when: inventory_hostname is match(INVENTORY_NAME_DESKTOP)
+  when: ROOT_DOMAIN is defined
+  notify: Restart nginx

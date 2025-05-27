@@ -1,0 +1,59 @@
+---
+ROOT_USER_GROUP: root
+INVENTORY_NAME_VPN: vpn*
+INVENTORY_NAME_IPA: ipa*
+
+USERS: []
+
+AUTOMATION_USERS:
+  DEV:
+    username: svcdev
+    uid: 1051
+    group: svcdev
+    groups: developers,services,staff
+    shell: /bin/bash
+  PROD:
+    username: svcprod
+    uid: 1052
+    group: svcprod
+    groups: developers,services,staff
+    shell: /bin/bash
+
+SERVICE_USERS:
+  NGINX:
+    username: nginx
+    uid: 1140
+    group: staff
+    groups: services,staff
+    shell: /bin/bash
+  VPNMON:
+    username: vpnmon
+    uid: 1170
+    group: staff
+    groups: services,staff
+    shell: /bin/bash
+
+GROUPS:
+  - name: developers
+    gid: 1200
+  - name: admins
+    gid: 1201
+  - name: services
+    gid: 1202
+  # NOTE: may need to remap `dialout` and `fax` groups on ubuntu
+  - name: staff  # mac
+    gid: 20
+  - name: sudo
+    gid: 21
+
+####################
+# Software         #
+####################
+# Ports
+PORTS_VPN_MONITOR: 6100
+PORTS_VPN_MANAGEMENT: 6101
+PORTS_PIHOLE: 9000
+
+# VPN
+VPN_HOSTS: []
+VPN_USERS: []

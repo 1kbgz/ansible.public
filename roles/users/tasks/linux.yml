@@ -9,7 +9,8 @@
     append: true
   become: true
   loop: "{{ USERS }}"
-  when: "AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)"  # NOTE: external managed by IPA
+  when: AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)
+  # NOTE: external managed by IPA
 
 - name: Add the automation users
   ansible.builtin.user:
@@ -21,7 +22,8 @@
     append: true
   become: true
   loop: "{{ AUTOMATION_USERS | dict2items }}"
-  when: "AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)"  # NOTE: external managed by IPA
+  when: AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)
+  # NOTE: external managed by IPA
 
 - name: Add the service users
   ansible.builtin.user:
@@ -33,4 +35,5 @@
     append: true
   become: true
   loop: "{{ SERVICE_USERS | dict2items }}"
-  when: "AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)"  # NOTE: external managed by IPA
+  when: AUTH_SOURCE != 'ipa' or inventory_hostname is match(INVENTORY_NAME_VPN)
+  # NOTE: external managed by IPA

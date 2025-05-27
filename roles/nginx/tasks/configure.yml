@@ -52,11 +52,12 @@
         ### END SERVERS
       }
   notify: Restart nginx
+  when: ROOT_DOMAIN is defined
   become: true
 
 - name: Add nginx server file for vhost
   ansible.builtin.copy:
-    dest: /etc/nginx/conf.d/{{ NGINX_DEFAULT_VHOST }}-default-vhost.conf
+    dest: /etc/nginx/conf.d/{{ NGINX_DEFAULT_VHOST_PREFIX }}-default-vhost.conf
     mode: '0644'
     content: |
       server {
