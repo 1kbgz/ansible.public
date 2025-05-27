@@ -1,7 +1,7 @@
 ---
 dependencies:
   - role: python
-  - role: vpn-server
+  # - role: vpn-server
   - role: nginx
 
 galaxy_info:
