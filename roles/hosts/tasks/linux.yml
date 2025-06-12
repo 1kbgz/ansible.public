@@ -1,7 +1,7 @@
 ---
 - name: Setup /etc/hosts
   ansible.builtin.copy:
-    path: /etc/hosts
+    dest: /etc/hosts
     content: |
       127.0.0.1 {{ inventory_hostname }}
   when: not inventory_hostname is match("ipa*")  # NOTE: freeipa can't have 127.0.0.1 mapping to host
