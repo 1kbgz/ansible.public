@@ -1,27 +1,23 @@
 ---
-- name: Add mappings to /etc/hosts
-  ansible.builtin.blockinfile:
+- name: Setup /etc/hosts
+  ansible.builtin.copy:
     path: /etc/hosts
-    block: |
+    content: |
       127.0.0.1 {{ inventory_hostname }}
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - localhost"
   when: not inventory_hostname is match("ipa*")  # NOTE: freeipa can't have 127.0.0.1 mapping to host
 
-- name: Add mappings to /etc/hosts
-  ansible.builtin.blockinfile:
-    path: /etc/hosts
-    block: |
-      {{ item.ip }} {{ item.name }}
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - VPN - {{ item.name }}"
-  loop: "{{ VPN_HOSTS }}"
+# - name: Add mappings to /etc/hosts
+#   ansible.builtin.blockinfile:
+#     path: /etc/hosts
+#     block: |
+#       127.0.0.1 {{ inventory_hostname }}
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK - localhost"
+#   when: not inventory_hostname is match("ipa*")  # NOTE: freeipa can't have 127.0.0.1 mapping to host
 
-- name: Add mappings to /etc/hosts
-  ansible.builtin.blockinfile:
-    path: /etc/hosts
-    block: |
-      {{ item.ip }} {{ item.name }}
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - BLOCK - {{ item.name }}"
-  loop:
-    # protection
-    - { name: minexmr.com, ip: 127.0.0.1 }
-    - { name: pool.minexmr.com, ip: 127.0.0.1 }
+# - name: Add mappings to /etc/hosts
+#   ansible.builtin.blockinfile:
+#     path: /etc/hosts
+#     block: |
+#       {{ item.ip }} {{ item.name }}
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK - VPN - {{ item.name }}"
+#   loop: "{{ VPN_HOSTS }}"
