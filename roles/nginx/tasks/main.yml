@@ -1,9 +1,0 @@
----
-- name: Run fs operations
-  ansible.builtin.include_tasks: fs.yml
-
-- name: Configure nginx
-  ansible.builtin.include_tasks: configure.yml
-
-- name: Configure nginx
-  ansible.builtin.include_tasks: configure.yml

@@ -8,5 +8,5 @@
   become: true
 
 - name: Include Linux specific tasks
-  ansible.builtin.include_tasks: linux.yml
+  ansible.builtin.include_tasks: linux.yaml
   when: OS == 'EL' or OS == 'Ubuntu'
