@@ -1,0 +1,33 @@
+---
+- name: Install "core" packages
+  ansible.builtin.dnf:
+    name:
+      - openvpn
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'EL'
+
+- name: Install "core" packages
+  ansible.builtin.apt:
+    name:
+      - openvpn
+      - openvpn-systemd-resolved
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'Ubuntu'
+
+- name: Install "core" packages
+  ansible.builtin.apt:
+    name:
+      - openvpn
+      - openvpn-systemd-resolved
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'Raspbian'
+
+- name: Install "core" packages
+  community.general.homebrew:
+    name:
+      - openvpn
+    state: present
+  when: OS == 'macOS'

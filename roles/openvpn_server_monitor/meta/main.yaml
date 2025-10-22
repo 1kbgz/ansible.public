@@ -4,7 +4,7 @@ dependencies:
   - role: nginx
 
 galaxy_info:
-  role_name: vpn_server_monitor
+  role_name: openvpn_server_monitor
   author: 1kbgz
   description: Install the openvpn-monitor python package
   license: AGPL-3.0

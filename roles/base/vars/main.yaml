@@ -34,7 +34,6 @@ packages:
     - net-tools
     - nginx
     - openssl-devel
-    - openvpn
     - compat-openssl11
     - pcre-devel
     - perl-ExtUtils-Embed

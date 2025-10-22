@@ -1,4 +1,7 @@
 ---
+- name: Install required packages
+  ansible.builtin.include_tasks: deps.yaml
+
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yaml
 
