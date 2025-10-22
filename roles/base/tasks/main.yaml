@@ -3,7 +3,7 @@
   ansible.builtin.copy:
     dest: /etc/info.yaml
     mode: '0755'
-    owner: "{{ ANSIBLE_PRIMARY_USER }}"
+    owner: "root"
     content: "{{ lookup('ansible.builtin.template', '../templates/info.yaml') }}"
   become: true
 
