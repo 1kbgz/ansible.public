@@ -1,4 +1,10 @@
 ---
+- name: Update apt
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 86400
+  when: OS == 'Ubuntu'
+
 - name: Install the 'Development tools' package group
   ansible.builtin.dnf:
     name: "@Development tools"
