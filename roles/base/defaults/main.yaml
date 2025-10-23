@@ -2,10 +2,7 @@
 packages:
   EL: []
   Ubuntu: []
-  notify:
-    - Restart cron
-    - Restart fail2ban
-    - Restart firewalld
-    - Restart resolved
-    - Stop lighttpd
-    - Stop dnsmasq
+  Raspbian: []
+  macOS: []
+  macOS_casks: []
+  notify: []

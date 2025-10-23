@@ -1,0 +1,13 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: wireguard_server
+  author: 1kbgz
+  description: Install and configure wireguard server
+  license: AGPL-3.0
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+  galaxy_tags:
+    - development

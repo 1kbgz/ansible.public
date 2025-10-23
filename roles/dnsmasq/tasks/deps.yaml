@@ -1,0 +1,14 @@
+---
+- name: Install dnsmasq (EL)
+  ansible.builtin.dnf:
+    name:
+      - dnsmasq
+    state: present
+  when: OS == 'EL'
+
+- name: Install dnsmasq (Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - dnsmasq
+    state: present
+  when: OS == 'Ubuntu'

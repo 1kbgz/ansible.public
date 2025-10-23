@@ -1,0 +1,109 @@
+---
+- name: Update apt
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 86400
+  when: OS == 'Ubuntu'
+
+- name: Install the 'Development tools' package group
+  ansible.builtin.dnf:
+    name: "@Development tools"
+    state: present
+  when: OS == 'EL'
+
+- name: Install epel-release
+  ansible.builtin.dnf:
+    name:
+      - epel-release
+    state: present
+  when: OS == 'EL'
+
+- name: Install the "build essential" tools
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+  when: OS == 'Ubuntu'
+
+- name: Install "core" packages
+  ansible.builtin.dnf:
+    name: "{{ packages.EL }}"
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'EL'
+
+- name: Install "core" packages
+  ansible.builtin.apt:
+    name: "{{ packages.Ubuntu }}"
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'Ubuntu'
+
+- name: Install "core" packages
+  ansible.builtin.apt:
+    name: "{{ packages.Raspbian }}"
+    state: present
+  notify: "{{ packages.notify }}"
+  when: OS == 'Raspbian'
+
+- name: Install "core" packages
+  community.general.homebrew:
+    name: "{{ packages.macOS }}"
+    state: present
+  when: OS == 'macOS'
+
+- name: Install "core" packages (casks)
+  community.general.homebrew_cask:
+    name: "{{ packages.macOS_casks }}"
+    state: present
+  when: OS == 'macOS'
+
+- name: Ensure homebrew in path
+  ansible.builtin.lineinfile:
+    path: /etc/paths
+    line: "/opt/homebrew/bin"
+  become: true
+  when: OS == 'macOS'
+
+- name: Create /etc/profile.d directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/profile.d/
+    state: directory
+    mode: '0755'
+  become: true
+  when: OS == 'macOS'
+
+- name: Add homebrew bin dir to system-wide $PATH.
+  ansible.builtin.copy:
+    dest: /etc/profile.d/homebrew.sh
+    content: 'PATH=$PATH:/opt/homebrew/bin'
+  become: true
+  when: OS == 'macOS'
+
+- name: Add gpg signing key for chrome
+  ansible.builtin.apt_key:
+    url: https://dl.google.com/linux/linux_signing_key.pub
+    state: present
+  when: OS == 'Ubuntu'
+
+- name: Adding repository for chrome
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main"
+    state: present
+    filename: google-chrome
+    update_cache: true
+  when: OS == 'Ubuntu'
+
+- name: Installing google-chrome-stable
+  ansible.builtin.apt:
+    name: google-chrome-stable
+    state: present
+    force_apt_get: true
+    update_cache: true
+  when: OS == 'Ubuntu'
+
+- name: Add deadsnakes python
+  ansible.builtin.apt_repository:
+    validate_certs: false
+    repo: 'ppa:deadsnakes/ppa'
+    state: present
+  when: OS == 'Ubuntu'

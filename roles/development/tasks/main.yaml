@@ -7,6 +7,9 @@
     content: "{{ lookup('ansible.builtin.template', '../templates/info.yaml') }}"
   become: true
 
+- name: Run fs operations
+  ansible.builtin.include_tasks: fs.yaml
+
 - name: Install packages
   ansible.builtin.include_tasks: install.yaml
 

@@ -1,0 +1,18 @@
+---
+- name: Restart resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+    enabled: true
+
+- name: Stop lighttpd
+  ansible.builtin.systemd:
+    name: lighttpd
+    state: stopped
+    enabled: false
+
+- name: Stop dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: stopped
+    enabled: false
