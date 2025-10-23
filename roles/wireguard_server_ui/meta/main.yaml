@@ -2,9 +2,9 @@
 dependencies: []
 
 galaxy_info:
-  role_name: dnsmasq
+  role_name: wireguard_server_ui
   author: 1kbgz
-  description: Install and configure dnsmasq as DNS server
+  description: Install and configure UI for wireguard server
   license: AGPL-3.0
   min_ansible_version: "2.12"
   platforms:

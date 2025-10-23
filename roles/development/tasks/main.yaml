@@ -3,4 +3,4 @@
   ansible.builtin.include_tasks: fs.yaml
 
 - name: Install packages
-  ansible.builtin.include_tasks: install.yaml
+  ansible.builtin.include_tasks: deps.yaml

@@ -1,3 +1,0 @@
----
-- name: Install required packages
-  ansible.builtin.include_tasks: deps.yaml
