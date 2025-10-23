@@ -1,17 +1,6 @@
 ---
-- name: Copy all relevant host information to /etc/info.yaml
-  ansible.builtin.copy:
-    dest: /etc/info.yaml
-    mode: '0755'
-    owner: "root"
-    content: "{{ lookup('ansible.builtin.template', '../templates/info.yaml') }}"
-  become: true
-
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yaml
 
 - name: Install packages
   ansible.builtin.include_tasks: install.yaml
-
-- name: Configure firewall
-  ansible.builtin.include_tasks: firewall.yaml
