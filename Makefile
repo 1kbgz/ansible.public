@@ -6,7 +6,7 @@ ansible-lint:  ## run linter with ansible-lint
 
 check-deps:  ## check that we haven't emptied dependencies for testing
 	bash -c 'grep -rn "dependencies: \[\]" ./roles/'
-	bash -c '[[ "$$(grep -rn "dependencies: \[\]" ./roles/ | wc -l | xargs | tee >(cat 1>&2))" == "4" ]]'
+	bash -c '[[ "$$(grep -rn "dependencies: \[\]" ./roles/ | wc -l | xargs | tee >(cat 1>&2))" == "3" ]]'
 
 lint: check-deps ansible-lint  ## run linters
 
