@@ -1,0 +1,44 @@
+---
+- name: Ensure groups exist
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  become: true
+  loop: "{{ GROUPS }}"
+  when: AUTH_SOURCE != 'ipa'
+
+- name: Ensure all user groups exist
+  ansible.builtin.group:
+    name: "{{ item.username }}"
+    gid: "{{ item.uid }}"
+    state: present
+  become: true
+  loop: "{{ USERS }}"
+  when: AUTH_SOURCE != 'ipa'
+
+- name: Ensure all automation user groups exist
+  ansible.builtin.group:
+    name: "{{item.value.username }}"
+    gid: "{{ item.value.uid }}"
+    state: present
+  become: true
+  loop: "{{ AUTOMATION_USERS | dict2items }}"
+  when: AUTH_SOURCE != 'ipa'
+
+- name: Ensure all service user groups exist
+  ansible.builtin.group:
+    name: "{{item.value.username }}"
+    gid: "{{ item.value.uid }}"
+    state: present
+  become: true
+  loop: "{{ SERVICE_USERS | dict2items }}"
+  when: AUTH_SOURCE != 'ipa'
+
+- name: Include Linux specific tasks
+  ansible.builtin.include_tasks: linux.yaml
+  when: OS == 'Ubuntu' or OS == 'EL'
+
+- name: Include Ubuntu specific tasks
+  ansible.builtin.include_tasks: sudo.yaml
+  when: OS == 'Ubuntu' or OS == 'EL'
