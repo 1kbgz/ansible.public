@@ -151,7 +151,7 @@
 
 - name: Import apache arrow GPG key
   ansible.builtin.command:
-    cmd:  'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
+    cmd: 'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
   args:
     creates: /usr/share/keyrings/apache-arrow-apt-source.gpg
   when: OS == 'Ubuntu'
@@ -191,6 +191,7 @@
 - name: Add micromamba
   ansible.builtin.shell: |
     set -eux pipefail
+    set -o pipefail
     curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
     mv bin/micromamba /usr/local/bin/
     rm -rf bin
@@ -202,6 +203,7 @@
 - name: Add uv
   ansible.builtin.shell: |
       set -eux pipefail
+      set -o pipefail
       curl -LsSf https://astral.sh/uv/install.sh | sh
   when: OS == 'Ubuntu'
 
