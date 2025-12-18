@@ -99,18 +99,18 @@
     state: present
   when: OS == 'Ubuntu'
 
-- name: Add nodesource NodeJS
-  ansible.builtin.apt_repository:
-    repo: 'deb https://deb.nodesource.com/node_22.x nodistro main'
-    state: present
-    filename: nodesource
-    update_cache: true
-  when: OS == 'Ubuntu'
-
 - name: Add nodesource NodeJS key
   ansible.builtin.apt_key:
     url: 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key'
     state: present
+  when: OS == 'Ubuntu'
+
+- name: Add nodesource NodeJS
+  ansible.builtin.apt_repository:
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main'
+    state: present
+    filename: nodesource
+    update_cache: true
   when: OS == 'Ubuntu'
 
 - name: Add LLVM apt repository
