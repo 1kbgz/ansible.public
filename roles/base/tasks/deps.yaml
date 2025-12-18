@@ -97,20 +97,11 @@
   ansible.builtin.apt:
     name: google-chrome-stable
     state: present
-    force_apt_get: true
-    update_cache: true
-  when: OS == 'Ubuntu'
-
-- name: Add deadsnakes python
-  ansible.builtin.apt_repository:
-    validate_certs: false
-    repo: 'ppa:deadsnakes/ppa'
-    state: present
   when: OS == 'Ubuntu'
 
 - name: Add nodesource NodeJS
   ansible.builtin.apt_repository:
-    repo: 'deb https://deb.nodesource.com/node_22.x {{ ansible_distribution_release }} main'
+    repo: 'deb https://deb.nodesource.com/node_22.x nodistro main'
     state: present
     filename: nodesource
     update_cache: true
