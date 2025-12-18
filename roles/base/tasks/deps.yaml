@@ -116,42 +116,22 @@
     update_cache: true
   when: OS == 'Ubuntu'
 
+- name: Add LLVM GPG key
+  ansible.builtin.get_url:
+    url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+    dest: /usr/share/keyrings/llvm-snapshot.gpg.key
+    mode: '0644'
+    owner: root
+    group: root
+  when: OS == 'Ubuntu'
+
 - name: Add LLVM apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-15 main'
+    repo: 'deb [signed-by=/usr/share/keyrings/llvm-snapshot.gpg.key] http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-15 main'
     state: present
     filename: llvm
     update_cache: true
   when: OS == 'Ubuntu'
-
-- name: Add LLVM GPG key
-  ansible.builtin.apt_key:
-    url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
-    state: present
-  when: OS == 'Ubuntu'
-
-- name: Add micromamba
-  ansible.builtin.shell: |
-    set -euxo pipefail
-    curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin/ micromamba
-  args:
-    creates: /usr/local/bin/micromamba
-  become: true
-  when: OS == 'Ubuntu'
-
-- name: Add uv
-  ansible.builtin.shell: |
-      set -euxo pipefail
-      curl -LsSf https://astral.sh/uv/install.sh | sh
-  when: OS == 'Ubuntu'
-
-# - name: Add rustup
-#   ansible.builtin.shell: |
-#       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-#   args:
-#     creates: /root/.cargo/bin/rustup
-#   become: true
-#   when: OS == 'Ubuntu'
 
 - name: Add apache arrow
   ansible.builtin.apt_repository:
@@ -177,3 +157,26 @@
     filename: newrelic-infra
     update_cache: true
   when: OS == 'Ubuntu'
+
+- name: Add micromamba
+  ansible.builtin.shell: |
+    set -euxo pipefail
+    curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin/ micromamba
+  args:
+    creates: /usr/local/bin/micromamba
+  become: true
+  when: OS == 'Ubuntu'
+
+- name: Add uv
+  ansible.builtin.shell: |
+      set -euxo pipefail
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+  when: OS == 'Ubuntu'
+
+# - name: Add rustup
+#   ansible.builtin.shell: |
+#       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+#   args:
+#     creates: /root/.cargo/bin/rustup
+#   become: true
+#   when: OS == 'Ubuntu'
