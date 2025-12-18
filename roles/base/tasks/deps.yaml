@@ -152,3 +152,28 @@
 #     creates: /root/.cargo/bin/rustup
 #   become: true
 #   when: OS == 'Ubuntu'
+
+- name: Add apache arrow
+  ansible.builtin.apt_repository:
+    repo: 'deb [arch=amd64] https://apache.bintray.com/arrow/ubuntu {{ ansible_distribution_release }} main'
+    state: present
+    filename: apache-arrow
+    update_cache: true
+  when: OS == 'Ubuntu'
+
+- name: Add newrelic
+  ansible.builtin.get_url:
+    url: 'https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg'
+    dest: /usr/share/keyrings/newrelic-infra.gpg
+    mode: '0644'
+    owner: root
+    group: root
+  when: OS == 'Ubuntu'
+
+- name: Add newrelic apt repository
+  ansible.builtin.apt_repository:
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/newrelic-infra.gpg] https://download.newrelic.com/infrastructure_agent/linux/apt {{ ansible_distribution_release }} main'
+    state: present
+    filename: newrelic-infra
+    update_cache: true
+  when: OS == 'Ubuntu'
