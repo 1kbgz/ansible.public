@@ -150,7 +150,7 @@
 
 - name: Add newrelic
   ansible.builtin.get_url:
-    url: 'https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg.key'
+    url: 'https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg'
     dest: /usr/share/keyrings/newrelic-infra.gpg.key
     mode: '0644'
     owner: root
