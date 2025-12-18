@@ -150,11 +150,18 @@
 
 - name: Add newrelic
   ansible.builtin.get_url:
-    url: 'https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg'
-    dest: /usr/share/keyrings/newrelic-infra.gpg
+    url: 'https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg.key'
+    dest: /usr/share/keyrings/newrelic-infra.gpg.key
     mode: '0644'
     owner: root
     group: root
+  when: OS == 'Ubuntu'
+
+- name: De-armor newrelic key
+  ansible.builtin.command:
+    cmd: 'gpg --dearmor -o /usr/share/keyrings/newrelic-infra.gpg /usr/share/keyrings/newrelic-infra.gpg.key'
+  args:
+    creates: /usr/share/keyrings/newrelic-infra.gpg
   when: OS == 'Ubuntu'
 
 - name: Add newrelic apt repository
@@ -167,7 +174,7 @@
 
 - name: Add micromamba
   ansible.builtin.shell: |
-    set -euxo pipefail
+    set -eux pipefail
     curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin/ micromamba
   args:
     creates: /usr/local/bin/micromamba
@@ -176,7 +183,7 @@
 
 - name: Add uv
   ansible.builtin.shell: |
-      set -euxo pipefail
+      set -eux pipefail
       curl -LsSf https://astral.sh/uv/install.sh | sh
   when: OS == 'Ubuntu'
 
