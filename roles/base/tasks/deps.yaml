@@ -140,6 +140,22 @@
     update_cache: true
   when: OS == 'Ubuntu'
 
+- name: Add apache arrow GPG key
+  ansible.builtin.get_url:
+    url: 'https://downloads.apache.org/arrow/KEYS'
+    dest: /usr/share/keyrings/apache-arrow-apt-source.gpg.key
+    mode: '0644'
+    owner: root
+    group: root
+  when: OS == 'Ubuntu'
+
+- name: Import apache arrow GPG key
+  ansible.builtin.command:
+    cmd:  'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
+  args:
+    creates: /usr/share/keyrings/apache-arrow-apt-source.gpg
+  when: OS == 'Ubuntu'
+
 - name: Add apache arrow
   ansible.builtin.apt_repository:
     repo: 'deb [arch=amd64] https://apache.bintray.com/arrow/ubuntu {{ ansible_distribution_release }} main'
