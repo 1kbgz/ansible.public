@@ -175,7 +175,9 @@
 - name: Add micromamba
   ansible.builtin.shell: |
     set -eux pipefail
-    curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin/ micromamba
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+    mv bin/micromamba /usr/local/bin/
+    rm -rf bin
   args:
     creates: /usr/local/bin/micromamba
   become: true
