@@ -100,9 +100,12 @@
   when: OS == 'Ubuntu'
 
 - name: Add nodesource NodeJS key
-  ansible.builtin.apt_key:
+  ansible.builtin.get_url:
     url: 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key'
-    state: present
+    dest: /usr/share/keyrings/nodesource.gpg
+    mode: '0644'
+    owner: root
+    group: root
   when: OS == 'Ubuntu'
 
 - name: Add nodesource NodeJS
