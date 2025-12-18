@@ -108,6 +108,13 @@
     group: root
   when: OS == 'Ubuntu'
 
+- name: De-armor nodesource key
+  ansible.builtin.command:
+    cmd: 'gpg --dearmor -o /usr/share/keyrings/nodesource.gpg /usr/share/keyrings/nodesource.gpg'
+  args:
+    creates: /usr/share/keyrings/nodesource.gpg
+  when: OS == 'Ubuntu'
+
 - name: Add nodesource NodeJS
   ansible.builtin.apt_repository:
     repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main'
