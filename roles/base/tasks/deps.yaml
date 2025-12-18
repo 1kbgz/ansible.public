@@ -197,6 +197,7 @@
     rm -rf bin
   args:
     creates: /usr/local/bin/micromamba
+    executable: /bin/bash
   become: true
   when: OS == 'Ubuntu'
 
@@ -205,6 +206,8 @@
       set -eux pipefail
       set -o pipefail
       curl -LsSf https://astral.sh/uv/install.sh | sh
+  args:
+    executable: /bin/bash
   when: OS == 'Ubuntu'
 
 # - name: Add rustup
