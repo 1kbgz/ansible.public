@@ -1,4 +1,7 @@
 ---
+- name: Setup folders
+  ansible.builtin.include_tasks: folders.yaml
+
 - name: Install packages
   ansible.builtin.include_tasks: deps.yaml
 
