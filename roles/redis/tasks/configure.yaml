@@ -1,0 +1,63 @@
+---
+- name: Setup redis port
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^port 6379'
+    line: "port {{ REDIS_PORT }}"
+    create: true
+  become: true
+
+- name: Bind redis to all interfaces (internal only)
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^bind'
+    line: "bind *"
+    create: true
+  become: true
+  when: REDIS_LOCATION == 'internal'
+
+- name: Disable protected mode for redis (internal only)
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^protected-mode'
+    line: "protected-mode no"
+    create: true
+  become: true
+  when: REDIS_LOCATION == 'internal'
+
+- name: Set output folder
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^dir'
+    line: "dir /var/lib/redis/db/"
+    create: true
+  become: true
+  when: REDIS_LOCATION == 'internal'
+
+- name: Copy redis service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/redis.service
+    mode: '0644'
+    owner: root
+    group: "{{ ROOT_USER_GROUP }}"
+    content: |
+      [Unit]
+      Description=Redis daemon
+      Wants=network.target
+      After=network.target
+
+      [Service]
+      User=redis
+      Type=simple
+      ExecStart=/usr/local/bin/redis /etc/redis/redis.conf
+      Restart=on-failure
+      RestartSec=5s
+      PrivateTmp=true
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true
+  notify:
+    - Reload daemon files
+    - Restart redis
+  when: OS == "Ubuntu"

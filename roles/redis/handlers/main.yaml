@@ -1,0 +1,11 @@
+---
+- name: Reload daemon files
+  ansible.builtin.systemd:
+    daemon_reload: true
+    force: true
+
+- name: Restart redis
+  ansible.builtin.systemd:
+    name: redis
+    state: restarted
+    enabled: true

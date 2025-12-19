@@ -1,0 +1,13 @@
+---
+- name: Run fs operations
+  ansible.builtin.include_tasks: fs.yaml
+
+- name: Configure nginx
+  ansible.builtin.include_tasks: configure.yaml
+
+- name: Include Ubuntu specific tasks
+  ansible.builtin.include_tasks: ubuntu.yml
+  when: OS == 'Ubuntu'
+
+- name: Configure redis common
+  ansible.builtin.include_tasks: configure.yml

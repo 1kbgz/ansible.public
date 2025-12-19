@@ -9,6 +9,7 @@ packages:
     - curl
     - git
     - git-lfs
+    - golang
     - htop
     - java-11-openjdk-devel
     - krb5-server
@@ -23,8 +24,10 @@ packages:
     - ncdu
     - net-tools
     - pkgconfig
+    - screen
     - tar
     - telnet
+    - tmux
     - unzip
     - wget
     - vim
@@ -41,8 +44,10 @@ packages:
     - cmake
     - cron
     - curl
+    - dconf-editor
     - git
     - git-lfs
+    - golang
     - htop
     - keyutils
     - krb5-admin-server
@@ -65,9 +70,13 @@ packages:
     - pkg-config
     - plocate
     - python3.11-dev
+    - redis
+    - redis-server
+    - screen
     - smbclient
     - tar
     - telnet
+    - tmux
     - unzip
     - uuid-dev
     - wget
@@ -121,12 +130,15 @@ packages:
     - curl
     - dos2unix
     # - flatbuffers
+    - fzf
     - gcc
     - gh
     - git
     - git-lfs
+    - golang
     - graphviz
     - hdf5
+    - hiredis
     - htop
     - jemalloc
     - jsoncpp
@@ -143,8 +155,11 @@ packages:
     - libxml2
     - libxmlsec1
     - lsusb
+    - lua
+    - luarocks
     - lunchy
     - lz4
+    - multimarkdown
     - ncdu
     - ncurses
     - nginx

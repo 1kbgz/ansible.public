@@ -1,0 +1,33 @@
+---
+- name: Remove nginx packages
+  ansible.builtin.dnf:
+    name:
+      - nginx
+    state: absent
+  become: true
+  when: OS == 'EL'
+
+- name: Remove nginx packages
+  ansible.builtin.apt:
+    name:
+      - nginx
+    state: absent
+    purge: true
+  become: true
+  when: OS == 'Ubuntu'
+
+- name: Remove nginx packages
+  ansible.builtin.apt:
+    name:
+      - nginx
+    state: absent
+    purge: true
+  become: true
+  when: OS == 'Raspbian'
+
+- name: Remove nginx packages
+  community.general.homebrew:
+    name:
+      - nginx
+    state: absent
+  when: OS == 'macOS'

@@ -1,0 +1,36 @@
+---
+- name: Create redis directory
+  ansible.builtin.file:
+    path: /var/lib/redis
+    state: directory
+    mode: '0775'
+    owner: redis
+    group: services
+  become: true
+
+- name: Create redis db directory
+  ansible.builtin.file:
+    path: /var/lib/redis/db
+    state: directory
+    mode: '0775'
+    owner: redis
+    group: services
+  become: true
+
+- name: Create redis log directory
+  ansible.builtin.file:
+    path: /var/log/redis
+    state: directory
+    mode: '0775'
+    owner: redis
+    group: services
+  become: true
+
+- name: Create redis config directory
+  ansible.builtin.file:
+    path: /etc/redis
+    state: directory
+    mode: '0775'
+    owner: redis
+    group: services
+  become: true

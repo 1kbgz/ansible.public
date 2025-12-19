@@ -1,12 +1,10 @@
 ---
-dependencies:
-  # - role: vpn-server
-  - role: nginx
+dependencies: []
 
 galaxy_info:
-  role_name: openvpn_server_monitor
+  role_name: nginx_remove
   author: 1kbgz
-  description: Install the openvpn-monitor python package
+  description: Remove NGINX and undo configuration
   license: AGPL-3.0
   min_ansible_version: "2.12"
   platforms:
@@ -15,6 +13,5 @@ galaxy_info:
         - "8"
         - "9"
     - name: Ubuntu
-    - name: macOS
   galaxy_tags:
     - development
