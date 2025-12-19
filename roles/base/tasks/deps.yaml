@@ -24,34 +24,34 @@
     state: present
   when: OS == 'Ubuntu'
 
-- name: Install "core" packages
+- name: Install "core" packages - EL
   ansible.builtin.dnf:
     name: "{{ packages.EL }}"
     state: present
   notify: "{{ packages.notify }}"
   when: OS == 'EL'
 
-- name: Install "core" packages
+- name: Install "core" packages - Ubuntu
   ansible.builtin.apt:
     name: "{{ packages.Ubuntu }}"
     state: present
   notify: "{{ packages.notify }}"
   when: OS == 'Ubuntu'
 
-- name: Install "core" packages
+- name: Install "core" packages - Raspbian
   ansible.builtin.apt:
     name: "{{ packages.Raspbian }}"
     state: present
   notify: "{{ packages.notify }}"
   when: OS == 'Raspbian'
 
-- name: Install "core" packages
+- name: Install "core" packages - macOS
   community.general.homebrew:
     name: "{{ packages.macOS }}"
     state: present
   when: OS == 'macOS'
 
-- name: Install "core" packages (casks)
+- name: Install "core" packages - macOS casks
   community.general.homebrew_cask:
     name: "{{ packages.macOS_casks }}"
     state: present
