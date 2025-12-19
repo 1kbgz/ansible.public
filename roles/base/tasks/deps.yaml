@@ -132,9 +132,16 @@
     group: root
   when: OS == 'Ubuntu'
 
+- name: De-armor LLVM GPG key
+  ansible.builtin.command:
+    cmd: 'gpg --dearmor -o /usr/share/keyrings/llvm-snapshot.gpg /usr/share/keyrings/llvm-snapshot.gpg.key'
+  args:
+    creates: /usr/share/keyrings/llvm-snapshot.gpg
+  when: OS == 'Ubuntu'
+
 - name: Add LLVM apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [signed-by=/usr/share/keyrings/llvm-snapshot.gpg.key] http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-15 main'
+    repo: 'deb [signed-by=/usr/share/keyrings/llvm-snapshot.gpg] http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-20 main'
     state: present
     filename: llvm
     update_cache: true
