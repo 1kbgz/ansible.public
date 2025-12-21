@@ -20,7 +20,7 @@
   ansible.builtin.lineinfile:
     path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main/postgresql.conf
     regexp: '^port ='
-    line: "port = {{ PORTS_POSTGRES }}"
+    line: "port = {{ POSTGRES_PORT }}"
     create: true
   become: true
 
