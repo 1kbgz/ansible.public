@@ -1,0 +1,57 @@
+---
+- name: Check to see if database has been initialized
+  ansible.builtin.stat:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main/postgresql.conf
+  become: true
+  register: db_data
+
+# NOTE: this doesnt work sometimes on macOS, run manually
+- name: Initialize db files
+  ansible.builtin.shell: |
+    initdb -D /var/lib/postgresql/{{ POSTGRES_VERSION }}/main -U postgres
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: postgres
+  when: not db_data.stat.exists
+  failed_when: false
+
+- name: Setup postgres port
+  ansible.builtin.lineinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main/postgresql.conf
+    regexp: '^port ='
+    line: "port = {{ PORTS_POSTGRES }}"
+    create: true
+  become: true
+
+- name: Setup postgres port
+  ansible.builtin.lineinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main/postgresql.conf
+    regexp: '^listen_addresses'
+    line: "listen_addresses = '*'"
+  become: true
+  become_user: postgres
+  when: POSTGRES_LOCATION == 'internal'
+
+- name: Configure postgres access
+  ansible.builtin.blockinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main/pg_hba.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      host all all 127.0.0.1/32 ident
+      host all all 127.0.0.1/32 md5
+      host all all {{ VPN_BASE_IP }}/32 md5
+  become: true
+
+- name: Configure postgres access
+  ansible.builtin.blockinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main/pg_hba.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - INTERNAL DB"
+    block: |
+      host all all 0.0.0.0/0 trust
+  become: true
+  become_user: postgres
+  notify:
+    - Reload daemon files
+    - Restart postgresql main
+  when: POSTGRES_LOCATION == 'internal'

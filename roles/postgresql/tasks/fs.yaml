@@ -1,0 +1,19 @@
+---
+- name: Create database directory
+  ansible.builtin.file:
+    path: /var/lib/postgresql
+    state: directory
+    mode: '0700'
+    owner: postgres
+    group: services
+  become: true
+
+- name: Create database directory
+  ansible.builtin.file:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/main
+    state: directory
+    mode: '0700'
+    owner: postgres
+    group: services
+    recurse: true
+  become: true
