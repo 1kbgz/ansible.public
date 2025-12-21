@@ -6,8 +6,5 @@
   ansible.builtin.include_tasks: configure.yaml
 
 - name: Include Ubuntu specific tasks
-  ansible.builtin.include_tasks: ubuntu.yml
+  ansible.builtin.include_tasks: ubuntu.yaml
   when: OS == 'Ubuntu'
-
-- name: Configure redis common
-  ansible.builtin.include_tasks: configure.yml

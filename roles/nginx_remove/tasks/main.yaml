@@ -5,8 +5,5 @@
 - name: Remove nginx packages
   ansible.builtin.include_tasks: deps.yaml
 
-- name: Remove configuration files
-  ansible.builtin.include_tasks: deconfigure.yaml
-
 - name: Remove filesystem artifacts
   ansible.builtin.include_tasks: fs.yaml
