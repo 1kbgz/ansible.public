@@ -40,7 +40,8 @@
     block: |
       host all all 127.0.0.1/32 ident
       host all all 127.0.0.1/32 md5
-      host all all {{ VPN_BASE_IP }}/32 md5
+      host all all 10.8.0.0/32 md5
+      host all all 10.1s0.0.0/32 md5
   become: true
 
 - name: Configure postgres access
