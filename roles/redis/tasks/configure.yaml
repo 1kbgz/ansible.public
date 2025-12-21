@@ -49,7 +49,7 @@
       [Service]
       User=redis
       Type=simple
-      ExecStart=/usr/local/bin/redis /etc/redis/redis.conf
+      ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
       Restart=on-failure
       RestartSec=5s
       PrivateTmp=true
