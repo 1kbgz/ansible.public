@@ -15,15 +15,27 @@ AUTOMATION_USERS:
     shell: /bin/bash
 
 SERVICE_USERS:
+  AIRFLOW:
+    username: airflow
+    uid: 1100
+    group: staff
+    groups: services,staff
+    shell: /bin/bash
   NGINX:
     username: nginx
     uid: 1140
     group: staff
     groups: services,staff
     shell: /bin/bash
-  VPNMON:
-    username: vpnmon
-    uid: 1170
+  POSTGRES:
+    username: postgres
+    uid: 1145
+    group: staff
+    groups: services,staff
+    shell: /bin/bash
+  REDIS:
+    username: redis
+    uid: 1155
     group: staff
     groups: services,staff
     shell: /bin/bash
