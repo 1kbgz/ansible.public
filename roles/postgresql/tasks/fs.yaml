@@ -1,7 +1,16 @@
 ---
-- name: Create database directory
+- name: Create var lib directory
   ansible.builtin.file:
     path: /var/lib/postgresql
+    state: directory
+    mode: '0700'
+    owner: postgres
+    group: services
+  become: true
+
+- name: Create etc directory
+  ansible.builtin.file:
+    path: /etc/postgresql
     state: directory
     mode: '0700'
     owner: postgres
@@ -16,4 +25,13 @@
     owner: postgres
     group: services
     recurse: true
+  become: true
+
+- name: Create symlink to etc
+  ansible.builtin.file:
+    src: /var/lib/postgresql/{{ POSTGRES_VERSION }}
+    dest: /etc/postgresql/{{ POSTGRES_VERSION }}
+    state: link
+    owner: postgres
+    group: services
   become: true
