@@ -39,7 +39,7 @@
     dest: /lib/systemd/system/redis.service
     mode: '0644'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: root
     content: |
       [Unit]
       Description=Redis daemon
