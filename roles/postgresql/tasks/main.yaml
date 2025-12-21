@@ -1,10 +1,10 @@
 ---
+- name: Include Ubuntu specific tasks
+  ansible.builtin.include_tasks: ubuntu.yaml
+  when: OS == 'Ubuntu'
+
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yaml
 
 - name: Configure postgresql
   ansible.builtin.include_tasks: configure.yaml
-
-- name: Include Ubuntu specific tasks
-  ansible.builtin.include_tasks: ubuntu.yaml
-  when: OS == 'Ubuntu'
