@@ -2,7 +2,7 @@
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yaml
 
-- name: Configure nginx
+- name: Configure redis
   ansible.builtin.include_tasks: configure.yaml
 
 - name: Include Ubuntu specific tasks

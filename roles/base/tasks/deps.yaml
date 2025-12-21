@@ -79,13 +79,13 @@
   become: true
   when: OS == 'macOS'
 
-- name: Add gpg signing key for chrome
+- name: Add chrome key
   ansible.builtin.apt_key:
     url: https://dl.google.com/linux/linux_signing_key.pub
     state: present
   when: OS == 'Ubuntu'
 
-- name: Adding repository for chrome
+- name: Add chrome apt repository
   ansible.builtin.apt_repository:
     repo: "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main"
     state: present
@@ -93,7 +93,7 @@
     update_cache: true
   when: OS == 'Ubuntu'
 
-- name: Installing google-chrome-stable
+- name: Install google-chrome-stable
   ansible.builtin.apt:
     name: google-chrome-stable
     state: present
@@ -115,7 +115,7 @@
     creates: /usr/share/keyrings/nodesource.gpg
   when: OS == 'Ubuntu'
 
-- name: Add nodesource NodeJS
+- name: Add nodesource NodeJS apt repository
   ansible.builtin.apt_repository:
     repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main'
     state: present
@@ -123,7 +123,7 @@
     update_cache: true
   when: OS == 'Ubuntu'
 
-- name: Add LLVM GPG key
+- name: Add LLVM key
   ansible.builtin.get_url:
     url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
     dest: /usr/share/keyrings/llvm-snapshot.gpg.key
@@ -132,7 +132,7 @@
     group: root
   when: OS == 'Ubuntu'
 
-- name: De-armor LLVM GPG key
+- name: De-armor LLVM key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/llvm-snapshot.gpg /usr/share/keyrings/llvm-snapshot.gpg.key'
   args:
@@ -147,7 +147,7 @@
     update_cache: true
   when: OS == 'Ubuntu'
 
-- name: Add apache arrow GPG key
+- name: Add apache arrow key
   ansible.builtin.get_url:
     url: 'https://downloads.apache.org/arrow/KEYS'
     dest: /usr/share/keyrings/apache-arrow-apt-source.gpg.key
@@ -156,14 +156,14 @@
     group: root
   when: OS == 'Ubuntu'
 
-- name: Import apache arrow GPG key
+- name: De-armor apache arrow key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
   args:
     creates: /usr/share/keyrings/apache-arrow-apt-source.gpg
   when: OS == 'Ubuntu'
 
-- name: Add apache arrow
+- name: Add apache arrow apt repository
   ansible.builtin.apt_repository:
     repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/apache-arrow-apt-source.gpg] https://apache.jfrog.io/artifactory/arrow/ubuntu/ {{ ansible_distribution_release }} main'
     state: present
@@ -171,7 +171,7 @@
     update_cache: true
   when: OS == 'Ubuntu'
 
-- name: Add newrelic
+- name: Add newrelic key
   ansible.builtin.get_url:
     url: 'https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg'
     dest: /usr/share/keyrings/newrelic-infra.gpg.key
@@ -192,6 +192,30 @@
     repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/newrelic-infra.gpg] https://download.newrelic.com/infrastructure_agent/linux/apt {{ ansible_distribution_release }} main'
     state: present
     filename: newrelic-infra
+    update_cache: true
+  when: OS == 'Ubuntu'
+
+- name: Add postgresql key
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /usr/share/keyrings/postgresql.gpg.key
+    mode: '0644'
+    owner: root
+    group: root
+  when: OS == 'Ubuntu'
+
+- name: De-armor postgresql key
+  ansible.builtin.command:
+    cmd: 'gpg --dearmor -o /usr/share/keyrings/postgresql.gpg /usr/share/keyrings/postgresql.gpg.key'
+  args:
+    creates: /usr/share/keyrings/postgresql.gpg
+  when: OS == 'Ubuntu'
+
+- name: Add postgresql apt repository
+  ansible.builtin.apt_repository:
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main'
+    state: present
+    filename: postgresql
     update_cache: true
   when: OS == 'Ubuntu'
 
