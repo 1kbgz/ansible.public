@@ -1,0 +1,8 @@
+---
+- name: Stop airflow-celery-flower service
+  ansible.builtin.systemd:
+    name: airflow-celery-flower
+    state: stopped
+    enabled: false
+  become: true
+  ignore_errors: true

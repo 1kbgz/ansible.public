@@ -1,0 +1,6 @@
+---
+- name: Remove airflow-celery-flower systemd file
+  ansible.builtin.file:
+    path: /lib/systemd/system/airflow-celery-flower.service
+    state: absent
+  become: true

@@ -1,0 +1,21 @@
+---
+dependencies:
+  - role: base
+  - role: users
+  - role: airflow_common
+
+galaxy_info:
+  role_name: airflow_celery_flower
+  author: 1kbgz
+  description: Install prerequisites and virtualenv for celery workers
+  license: AGPL-3.0
+  min_ansible_version: "2.12"
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: Ubuntu
+    - name: macOS
+  galaxy_tags:
+    - development

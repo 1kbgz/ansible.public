@@ -1,0 +1,4 @@
+---
+- name: Configure airflow celery worker
+  ansible.builtin.include_tasks: configure.yaml
+  when: OS != 'macOS'
