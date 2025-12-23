@@ -1,0 +1,6 @@
+---
+- name: Remove airflow-celery-worker systemd file
+  ansible.builtin.file:
+    path: /lib/systemd/system/airflow-celery-worker.service
+    state: absent
+  become: true

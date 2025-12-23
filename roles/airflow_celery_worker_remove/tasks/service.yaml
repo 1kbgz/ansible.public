@@ -1,0 +1,8 @@
+---
+- name: Stop airflow-celery-worker service
+  ansible.builtin.systemd:
+    name: airflow-celery-worker
+    state: stopped
+    enabled: false
+  become: true
+  ignore_errors: true

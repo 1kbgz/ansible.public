@@ -1,0 +1,6 @@
+---
+- name: Stop and disable airflow-celery-worker service
+  ansible.builtin.include_tasks: service.yaml
+
+- name: Remove filesystem artifacts
+  ansible.builtin.include_tasks: fs.yaml
