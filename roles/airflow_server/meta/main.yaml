@@ -1,7 +1,7 @@
 ---
 dependencies:
   - role: base
-  - role: airflow_environment
+  - role: airflow_common
   - role: airflow_db
 
 galaxy_info:

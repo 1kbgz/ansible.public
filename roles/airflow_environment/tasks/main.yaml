@@ -1,3 +1,0 @@
----
-- name: Configure airflow common
-  ansible.builtin.include_tasks: configure.yaml

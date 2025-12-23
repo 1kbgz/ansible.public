@@ -1,3 +1,0 @@
----
-- name: Deconstruct airflow common
-  ansible.builtin.include_tasks: deconstruct.yaml
