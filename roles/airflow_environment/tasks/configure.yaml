@@ -15,7 +15,6 @@
     owner: airflow
     group: services
     content: "{{ lookup('ansible.builtin.template', '../config/webserver_config.py') }}"
-  when: not airflow_cfg_exists.stat.exists
   become: true
 
 - name: Create airflow venvs directory if it does not exist
