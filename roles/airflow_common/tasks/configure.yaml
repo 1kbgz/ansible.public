@@ -13,7 +13,7 @@
   ansible.posix.mount:
     src: //{{ AIRFLOW_SHAREDRIVE_DOMAIN }}/Developer/var/lib/airflow
     path: /var/lib/airflow
-    opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid={{ AIRFLOW_UID }},user=airflow,username=airflow,password=airflow"
+    opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid={{ SERVICE_USERS.AIRFLOW.uid }},user=airflow,username=airflow,password=airflow"
     fstype: cifs
     state: mounted
   become: true
