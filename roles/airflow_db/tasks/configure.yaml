@@ -73,7 +73,7 @@
   become_user: postgres
 
 - name: Initialize database with airflow
-  ansible.builtin.command: /usr/local/bin/createdb -O airflow airflow -E utf-8 -U airflow -p {{ PORTS_AIRFLOW_POSTGRES }}
+  ansible.builtin.command: /usr/local/bin/createdb -O airflow airflow -E utf-8 -U airflow -p {{ AIRFLOW_POSTGRES_PORT }}
   when: db_data.stat is not defined or not db_data.stat.exists
   become: true
   become_user: postgres
