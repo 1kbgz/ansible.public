@@ -2,5 +2,5 @@
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yaml
 
-- name: Configure airflow
+- name: Configure airflow db
   ansible.builtin.include_tasks: configure.yaml

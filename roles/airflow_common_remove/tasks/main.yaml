@@ -1,3 +1,3 @@
 ---
-- name: Deconstruct airflow common
-  ansible.builtin.include_tasks: deconstruct.yaml
+- name: Remove filesystem artifacts
+  ansible.builtin.include_tasks: fs.yaml

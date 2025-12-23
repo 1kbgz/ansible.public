@@ -1,0 +1,109 @@
+---
+- name: Copy airflow-api-server service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/airflow-api-server.service
+    mode: '0644'
+    owner: root
+    group: root
+    content: |
+      [Unit]
+      Description=Airflow api-server daemon
+      Wants=network.target airflow-db.service airflow-scheduler.service
+      After=network.target airflow-db.service airflow-scheduler.service
+
+      [Service]
+      User=airflow
+      Environment=AIRFLOW_HOME=/var/lib/airflow
+      Type=simple
+      ExecStart=/var/lib/venvs/airflow/bin/airflow api-server --pid /var/lib/airflow/apiserver.pid --port {{ AIRFLOW_APISERVER_PORT }}
+      Restart=on-failure
+      RestartSec=5s
+      PrivateTmp=true
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload daemon files
+    - Restart airflow-api-server
+  become: true
+
+- name: Copy airflow-scheduler service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/airflow-scheduler.service
+    mode: '0644'
+    owner: root
+    group: root
+    content: |
+      [Unit]
+      Description=Airflow scheduler daemon
+      After=network.target airflow-db.service
+      Wants=network.target airflow-db.service
+
+      [Service]
+      User=airflow
+      Environment=AIRFLOW_HOME=/var/lib/airflow
+      Type=simple
+      ExecStart=/var/lib/venvs/airflow/bin/airflow scheduler
+      Restart=always
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload daemon files
+    - Restart airflow-scheduler
+  become: true
+
+- name: Copy airflow-triggerer service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/airflow-triggerer.service
+    mode: '0644'
+    owner: root
+    group: root
+    content: |
+      [Unit]
+      Description=Airflow triggerer daemon
+      After=network.target airflow-db.service
+      Wants=network.target airflow-db.service
+
+      [Service]
+      User=airflow
+      Environment=AIRFLOW_HOME=/var/lib/airflow
+      Type=simple
+      ExecStart=/var/lib/venvs/airflow/bin/airflow triggerer
+      Restart=always
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload daemon files
+    - Restart airflow-triggerer
+  become: true
+
+- name: Copy airflow-dag-processor service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/airflow-dag-processor.service
+    mode: '0644'
+    owner: root
+    group: root
+    content: |
+      [Unit]
+      Description=Airflow dag-processor daemon
+      After=network.target airflow-db.service
+      Wants=network.target airflow-db.service
+
+      [Service]
+      User=airflow
+      Environment=AIRFLOW_HOME=/var/lib/airflow
+      Type=simple
+      ExecStart=/var/lib/venvs/airflow/bin/airflow dag-processor
+      Restart=always
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload daemon files
+    - Restart airflow-dag-processor
+  become: true

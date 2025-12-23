@@ -1,0 +1,3 @@
+---
+- name: Stop and delete airflow scheduler/webserver from systemd
+  ansible.builtin.include_tasks: service.yaml

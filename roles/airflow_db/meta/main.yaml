@@ -1,10 +1,13 @@
 ---
-dependencies: []
+dependencies:
+  - role: base
+  - role: postgres
+  - role: airflow-common
 
 galaxy_info:
-  role_name: airflow_common_remove
+  role_name: airflow_db
   author: 1kbgz
-  description: Remove airflow prerequisites and virtualenv
+  description: Install database for airflow
   license: AGPL-3.0
   min_ansible_version: "2.12"
   platforms:

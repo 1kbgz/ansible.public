@@ -1,0 +1,146 @@
+---
+- name: Check to see if database has been initialized
+  ansible.builtin.stat:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
+  register: db_data
+  become: true
+  become_user: postgres
+
+- name: Create airflow db
+  ansible.builtin.shell: |
+    /usr/local/bin/initdb -D /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data -U airflow || echo "sometimes flaky, lets assume ok"
+  args:
+    executable: /bin/bash
+    creates: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
+  when: db_data.stat is not defined or not db_data.stat.exists
+  become: true
+  become_user: postgres
+
+- name: Setup postgres port
+  ansible.builtin.lineinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
+    regexp: '^port ='
+    line: "port = {{ AIRFLOW_POSTGRES_PORT }}"
+  become: true
+  become_user: postgres
+
+- name: Setup postgres port
+  ansible.builtin.lineinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
+    regexp: '^listen_addresses'
+    line: "listen_addresses = '*'"
+  become: true
+  become_user: postgres
+  when: POSTGRES_LOCATION == 'internal'
+
+- name: Configure max users
+  ansible.builtin.lineinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
+    regexp: '^max_connections = 100'
+    line: "max_connections = 1000"
+  become: true
+  become_user: postgres
+
+- name: Configure postgres access
+  ansible.builtin.blockinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/pg_hba.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      host all all 127.0.0.1/32 ident
+      host all all 127.0.0.1/32 md5
+      host all all 10.8.0.1/32 md5
+      host all all 10.10.0.1/32 md5
+  become: true
+  become_user: postgres
+
+- name: Configure postgres access
+  ansible.builtin.blockinfile:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/pg_hba.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - INTERNAL DB"
+    block: |
+      host all all 0.0.0.0/0 trust
+  become: true
+  become_user: postgres
+  when: POSTGRES_LOCATION == 'internal'
+
+- name: Start airflow db
+  ansible.builtin.shell: |
+    /usr/local/bin/pg_ctl -D /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data -l /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/logfile start || echo "sometimes flaky, lets assume ok"
+  args:
+    executable: /bin/bash
+  when: db_data.stat is not defined or not db_data.stat.exists
+  become: true
+  become_user: postgres
+
+- name: Initialize database with airflow
+  ansible.builtin.command: /usr/local/bin/createdb -O airflow airflow -E utf-8 -U airflow -p {{ PORTS_AIRFLOW_POSTGRES }}
+  when: db_data.stat is not defined or not db_data.stat.exists
+  become: true
+  become_user: postgres
+
+# NOTE this fails sometimes
+- name: Initialize airflow db structure
+  ansible.builtin.shell: |
+    . /var/lib/venvs/airflow/bin/activate
+    AIRFLOW_HOME=/var/lib/airflow airflow db init
+    AIRFLOW_HOME=/var/lib/airflow airflow users create \
+      --username admin \
+      --firstname admin \
+      --lastname admin \
+      --role admin \
+      --email admin \
+      --password admin
+  args:
+    executable: /bin/bash
+  when: db_data.stat is not defined or not db_data.stat.exists
+  become: true
+  become_user: airflow
+
+- name: Stop airflow db (will restart via systemd)
+  ansible.builtin.command: pg_ctl -D /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data stop
+  when: db_data.stat is not defined or not db_data.stat.exists
+  become: true
+  become_user: postgres
+
+- name: Copy airflow-postgresql service
+  ansible.builtin.copy:
+    dest: /lib/systemd/system/airflow-db.service
+    mode: '0644'
+    owner: root
+    group: root
+    content: |
+      [Unit]
+      Description=PostgreSQL database server for airflow
+      After=network.target postgresql-{{ POSTGRES_VERSION }}.service
+      Wants=network.target postgresql-{{ POSTGRES_VERSION }}.service
+
+      [Service]
+      Type=forking
+
+      User=postgres
+      Group=postgres
+
+      # Port number for server to listen on
+      Environment=PGPORT={{ AIRFLOW_POSTGRES_PORT }}
+
+      # Location of database directory
+      Environment=PGDATA=/var/lib/pgsql/14/airflow_data
+
+      # Where to send early-startup messages from the server (before the logging
+      # options of postgresql.conf take effect)
+      # This is normally controlled by the global default set by systemd
+      # StandardOutput=syslog
+
+      # Disable OOM kill on the postmaster
+      OOMScoreAdjust=-1000
+
+      ExecStart=/usr/local/bin/pg_ctl start -D ${PGDATA} -s -o "-p ${PGPORT}" -w -t 300
+      ExecStop=/usr/local/bin/pg_ctl stop -D ${PGDATA} -s -m fast
+      ExecReload=/usr/local/bin/pg_ctl reload -D ${PGDATA} -s
+
+      # Give a reasonable amount of time for the server to start up/shut down
+      TimeoutSec=300
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true

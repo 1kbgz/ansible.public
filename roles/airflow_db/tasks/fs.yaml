@@ -1,0 +1,9 @@
+---
+- name: Create airflow db directory
+  ansible.builtin.file:
+    path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data
+    state: directory
+    mode: '0700'
+    owner: postgres
+    group: services
+  become: true

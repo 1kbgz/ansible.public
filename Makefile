@@ -5,8 +5,8 @@ ansible-lint:  ## run linter with ansible-lint
 	ansible-lint roles/
 
 check-deps:  ## check that we haven't emptied dependencies for testing
-	bash -c 'grep -rn "dependencies: \[\]" ./roles/'
-	bash -c '[[ "$$(grep -rn "dependencies: \[\]" ./roles/ | wc -l | xargs | tee >(cat 1>&2))" == "8" ]]'
+	bash -c 'grep -rn "dependencies: \[\]" ./roles/ | grep -v "remove"'
+	bash -c '[[ "$$(grep -rn "dependencies: \[\]" ./roles/ | grep -v "remove" | wc -l | xargs | tee >(cat 1>&2))" == "1" ]]'
 
 lint: check-deps ansible-lint  ## run linters
 

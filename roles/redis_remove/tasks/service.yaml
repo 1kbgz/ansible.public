@@ -1,8 +1,27 @@
 ---
-- name: Stop redis service
+- name: Check to see if systemd assets are still around
+  ansible.builtin.stat:
+    path: /lib/systemd/system/redis.service
+  register: redis_service
+  become: true
+
+- name: Stop redis
   ansible.builtin.systemd:
-    name: redis
     state: stopped
     enabled: false
+    name: redis
   become: true
-  ignore_errors: true
+  when: redis_service.stat is defined and redis_service.stat.exists
+
+- name: Delete redis service
+  ansible.builtin.file:
+    path: /lib/systemd/system/redis.service
+    state: absent
+  become: true
+  when: redis_service.stat is defined and redis_service.stat.exists
+
+- name: Reload daemon files
+  ansible.builtin.systemd:
+    daemon_reload: true
+    force: true
+  become: true

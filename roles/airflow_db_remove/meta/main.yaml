@@ -2,9 +2,9 @@
 dependencies: []
 
 galaxy_info:
-  role_name: airflow_common_remove
+  role_name: remove_airflow_db
   author: 1kbgz
-  description: Remove airflow prerequisites and virtualenv
+  description: Remove database for airflow
   license: AGPL-3.0
   min_ansible_version: "2.12"
   platforms:

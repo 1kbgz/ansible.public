@@ -1,0 +1,3 @@
+---
+- name: Run airflow scheduler/api-server/dag-processor/triggerer with systemd
+  ansible.builtin.include_tasks: configure.yaml

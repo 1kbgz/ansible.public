@@ -1,10 +1,13 @@
 ---
-dependencies: []
+dependencies:
+  - role: python
+  - role: airflow_environment
+  - role: airflow_db
 
 galaxy_info:
-  role_name: airflow_common_remove
+  role_name: airflow_server
   author: 1kbgz
-  description: Remove airflow prerequisites and virtualenv
+  description: Install Apache Airflow server components
   license: AGPL-3.0
   min_ansible_version: "2.12"
   platforms:

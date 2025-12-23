@@ -1,0 +1,36 @@
+---
+- name: Remove nginx etc/conf.d directory
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d
+    state: absent
+  become: true
+
+- name: Remove nginx etc directory
+  ansible.builtin.file:
+    path: /etc/nginx
+    state: absent
+  become: true
+
+- name: Remove nginx cache directory
+  ansible.builtin.file:
+    path: /var/cache/nginx
+    state: absent
+  become: true
+
+- name: Remove nginx log directory
+  ansible.builtin.file:
+    path: /var/log/nginx
+    state: absent
+  become: true
+
+- name: Remove static directory
+  ansible.builtin.file:
+    path: /opt/www
+    state: absent
+  become: true
+
+- name: Remove static-public directory
+  ansible.builtin.file:
+    path: /opt/www-pub
+    state: absent
+  become: true

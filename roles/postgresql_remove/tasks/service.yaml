@@ -1,8 +1,27 @@
 ---
-- name: Stop postgresql service
+- name: Check to see if systemd assets are still around
+  ansible.builtin.stat:
+    path: /lib/systemd/system/postgresql.service
+  register: postgresql_service
+  become: true
+
+- name: Stop postgresql
   ansible.builtin.systemd:
-    name: postgresql@{{ POSTGRES_VERSION }}-main
     state: stopped
     enabled: false
+    name: postgresql@{{ POSTGRES_VERSION }}-main
   become: true
-  ignore_errors: true
+  when: postgresql_service.stat is defined and postgresql_service.stat.exists
+
+- name: Delete postgresql service
+  ansible.builtin.file:
+    path: /lib/systemd/system/postgresql.service
+    state: absent
+  become: true
+  when: postgresql_service.stat is defined and postgresql_service.stat.exists
+
+- name: Reload daemon files
+  ansible.builtin.systemd:
+    daemon_reload: true
+    force: true
+  become: true

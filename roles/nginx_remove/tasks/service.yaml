@@ -1,8 +1,27 @@
 ---
-- name: Stop nginx service
+- name: Check to see if systemd assets are still around
+  ansible.builtin.stat:
+    path: /lib/systemd/system/nginx.service
+  register: nginx_service
+  become: true
+
+- name: Stop nginx
   ansible.builtin.systemd:
-    name: nginx
     state: stopped
     enabled: false
+    name: nginx
   become: true
-  ignore_errors: true
+  when: nginx_service.stat is defined and nginx_service.stat.exists
+
+- name: Delete nginx service
+  ansible.builtin.file:
+    path: /lib/systemd/system/nginx.service
+    state: absent
+  become: true
+  when: nginx_service.stat is defined and nginx_service.stat.exists
+
+- name: Reload daemon files
+  ansible.builtin.systemd:
+    daemon_reload: true
+    force: true
+  become: true

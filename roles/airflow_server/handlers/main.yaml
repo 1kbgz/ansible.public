@@ -1,0 +1,29 @@
+---
+- name: Reload daemon files
+  ansible.builtin.systemd:
+    daemon_reload: true
+    force: true
+
+- name: Restart airflow-api-server
+  ansible.builtin.systemd:
+    name: "airflow-api-server"
+    state: restarted
+    enabled: true
+
+- name: Restart airflow-scheduler
+  ansible.builtin.systemd:
+    name: "airflow-scheduler"
+    state: restarted
+    enabled: true
+
+- name: Restart airflow-triggerer
+  ansible.builtin.systemd:
+    name: "airflow-triggerer"
+    state: restarted
+    enabled: true
+
+- name: Restart airflow-dag-processor
+  ansible.builtin.systemd:
+    name: "airflow-dag-processor"
+    state: restarted
+    enabled: true
