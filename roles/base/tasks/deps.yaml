@@ -237,6 +237,7 @@
       set -eux pipefail
       set -o pipefail
       curl -LsSf https://astral.sh/uv/install.sh | sh
+      mv ~/.local/bin/uv* /usr/local/bin/
   args:
     executable: /bin/bash
   when: OS == 'Ubuntu'
