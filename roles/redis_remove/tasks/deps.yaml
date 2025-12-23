@@ -1,0 +1,17 @@
+---
+- name: Remove redis packages
+  ansible.builtin.dnf:
+    name:
+      - redis-server
+    state: absent
+  become: true
+  when: OS == 'EL'
+
+- name: Remove redis packages
+  ansible.builtin.apt:
+    name:
+      - redis-server
+    state: absent
+    purge: true
+  become: true
+  when: OS == 'Ubuntu'

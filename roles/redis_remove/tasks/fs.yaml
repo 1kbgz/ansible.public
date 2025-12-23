@@ -1,0 +1,24 @@
+---
+- name: Remove redis etc directory
+  ansible.builtin.file:
+    path: /etc/redis
+    state: absent
+  become: true
+
+- name: Remove redis var directory
+  ansible.builtin.file:
+    path: /var/lib/redis
+    state: absent
+  become: true
+
+- name: Remove redis log directory
+  ansible.builtin.file:
+    path: /var/log/redis
+    state: absent
+  become: true
+
+- name: Remove redis systemd file
+  ansible.builtin.file:
+    path: /lib/systemd/system/redis.service
+    state: absent
+  become: true

@@ -1,0 +1,9 @@
+---
+- name: Stop and disable redis service
+  ansible.builtin.include_tasks: service.yaml
+
+- name: Remove redis packages
+  ansible.builtin.include_tasks: deps.yaml
+
+- name: Remove filesystem artifacts
+  ansible.builtin.include_tasks: fs.yaml

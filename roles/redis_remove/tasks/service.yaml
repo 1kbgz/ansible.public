@@ -1,0 +1,8 @@
+---
+- name: Stop redis service
+  ansible.builtin.systemd:
+    name: redis
+    state: stopped
+    enabled: false
+  become: true
+  ignore_errors: true
