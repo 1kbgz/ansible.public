@@ -10,8 +10,8 @@
 
 - name: Copy constraints file
   ansible.builtin.copy:
-    src: ../config/constraints-11.txt
-    dest: /var/lib/venvs/airflow/constraints-11.txt
+    src: ../config/constraints-3.11.txt
+    dest: /var/lib/venvs/airflow/constraints-3.11.txt
     owner: airflow
     group: services
     mode: '0644'
@@ -19,7 +19,7 @@
 
 - name: Setup airflow virtualenv
   ansible.builtin.pip:
-    requirements: /var/lib/venvs/airflow/constraints-11.txt
+    requirements: /var/lib/venvs/airflow/constraints-3.11.txt
     virtualenv: /var/lib/venvs/airflow
     virtualenv_python: '11'
   become: true
