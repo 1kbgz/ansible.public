@@ -1,0 +1,17 @@
+---
+- name: Delete airflow directory
+  ansible.builtin.file:
+    path: /var/lib/venvs/airflow
+    state: absent
+  become: true
+
+- name: Remove envirionment activation from bashrc
+  ansible.builtin.blockinfile:
+    path: /home/airflow/.bashrc
+    state: absent
+    block: |
+        source /var/lib/venvs/airflow/bin/activate
+        export AIRFLOW_HOME=/var/lib/airflow
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - AIRFLOW HOME"
+  become: true
+  become_user: airflow

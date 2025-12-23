@@ -65,32 +65,6 @@
     group: services
   become: true
 
-- name: Check if airflow config file exists
-  ansible.builtin.stat:
-    path: /var/lib/airflow/airflow.cfg
-  register: airflow_cfg_exists
-  become: true
-
-- name: Copy airflow config file into place
-  ansible.builtin.copy:
-    dest: /var/lib/airflow/airflow.cfg
-    mode: '0755'
-    owner: airflow
-    group: services
-    content: "{{ lookup('ansible.builtin.template', '../config/airflow.cfg') }}"
-  when: not airflow_cfg_exists.stat.exists
-  become: true
-
-- name: Copy webserver config file into place
-  ansible.builtin.copy:
-    dest: /var/lib/airflow/webserver_config.py
-    mode: '0755'
-    owner: airflow
-    group: services
-    content: "{{ lookup('ansible.builtin.template', '../config/webserver_config.py') }}"
-  when: not airflow_cfg_exists.stat.exists
-  become: true
-
 - name: Set AIRFLOW_HOME for any logins
   ansible.builtin.copy:
     dest: /etc/profile.d/airflow.sh
@@ -154,3 +128,13 @@
     state: mounted
   become: true
   when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
+
+- name: Set AIRFLOW_HOME for user
+  ansible.builtin.blockinfile:
+    path: /home/airflow/.bashrc
+    block: |
+      source /var/lib/venvs/airflow/bin/activate
+      export AIRFLOW_HOME=/var/lib/airflow
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - AIRFLOW HOME"
+  become: true
+  become_user: airflow
