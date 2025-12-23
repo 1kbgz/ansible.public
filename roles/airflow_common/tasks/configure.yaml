@@ -9,16 +9,15 @@
   become: true
 
 # TODO uid here needs to be standardized across servers
-- name: Mount airflow shared SMB drive
+- name: Mount airflow lib via nfs
   ansible.posix.mount:
-    src: //{{ AIRFLOW_SHAREDRIVE_DOMAIN }}/Developer/var/lib/airflow
+    src: "{{ AIRFLOW_SHAREDRIVE_DOMAIN }}:/volume1/Developer/var/lib/airflow"
     path: /var/lib/airflow
-    opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid={{ SERVICE_USERS.AIRFLOW.uid }},user=airflow,username=airflow,password=airflow"
-    fstype: cifs
+    opts: "defaults"
+    fstype: nfs
     state: mounted
   become: true
   when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
-  # TODO MAC
 
 - name: Create airflow celery dags directory
   ansible.builtin.file:
@@ -129,8 +128,8 @@
 #   when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
 - name: Mount home shared nfs drive
   ansible.posix.mount:
-    src: "{{ AIRFLOW_SHAREDRIVE_DOMAIN }}:/volume1/Developer/home/{{ AIRFLOW_USERNAME }}"
-    path: /mnt/home/{{ AIRFLOW_USERNAME }}
+    src: "{{ AIRFLOW_SHAREDRIVE_DOMAIN }}:/volume1/Developer/home/airflow"
+    path: /mnt/home/airflow
     opts: "defaults"
     fstype: nfs
     state: mounted
