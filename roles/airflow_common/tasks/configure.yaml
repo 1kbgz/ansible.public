@@ -11,7 +11,7 @@
 # TODO uid here needs to be standardized across servers
 - name: Mount airflow lib via nfs
   ansible.posix.mount:
-    src: "{{ AIRFLOW_SHAREDRIVE_DOMAIN }}:/volume1/Developer/var/lib/airflow"
+    src: "airflow-sharedrive:/volume1/Developer/var/lib/airflow"
     path: /var/lib/airflow
     opts: "defaults"
     fstype: nfs
@@ -65,6 +65,12 @@
     group: services
   become: true
 
+- name: Check if airflow config file exists
+  ansible.builtin.stat:
+    path: /var/lib/airflow/airflow.cfg
+  register: airflow_cfg_exists
+  become: true
+
 - name: Copy airflow config file into place
   ansible.builtin.copy:
     dest: /var/lib/airflow/airflow.cfg
@@ -72,6 +78,7 @@
     owner: airflow
     group: services
     content: "{{ lookup('ansible.builtin.template', '../config/airflow.cfg') }}"
+  when: not airflow_cfg_exists.stat.exists
   become: true
 
 - name: Copy webserver config file into place
@@ -81,6 +88,7 @@
     owner: airflow
     group: services
     content: "{{ lookup('ansible.builtin.template', '../config/webserver_config.py') }}"
+  when: not airflow_cfg_exists.stat.exists
   become: true
 
 - name: Set AIRFLOW_HOME for any logins
@@ -100,7 +108,7 @@
 
 - name: Create airflow home directory
   ansible.builtin.file:
-    path: /mnt/home/airflow
+    path: /home/airflow
     state: directory
     mode: '0775'
     owner: airflow
@@ -110,25 +118,26 @@
 # TODO MAC
 # - name: Mount home shared SMB drive
 #   ansible.posix.mount:
-#     src: //{{ AIRFLOW_SHAREDRIVE_DOMAIN }}/Developer/home/{{ AIRFLOW_USERNAME }}
-#     path: /mnt/home/{{ AIRFLOW_USERNAME }}
-#     opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid={{ AIRFLOW_UID }},user={{ AIRFLOW_USERNAME }},username={{ AIRFLOW_USERNAME }},password={{ AIRFLOW_MOUNT_PASSWORD }}"
+#     src: //airflow-sharedrive/Developer/home/airflow
+#     path: /home/airflow
+#     opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid=1100,user=airflow,username=airflow,password=airflow"
 #     fstype: cifs
 #     state: mounted
 #   become: true
 #   when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
 # - name: Mount data shared SMB drive
 #   ansible.posix.mount:
-#     src: //{{ AIRFLOW_SHAREDRIVE_DOMAIN }}/Developer/data/airflow
+#     src: //airflow-sharedrive/Developer/data/airflow
 #     path: /data/airflow
-#     opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid={{ AIRFLOW_UID }},user={{ AIRFLOW_USERNAME }},username={{ AIRFLOW_USERNAME }},password={{ AIRFLOW_MOUNT_PASSWORD }}"
+#     opts: "rw,vers=3,file_mode=0600,dir_mode=0700,uid=1100,user=airflow,username=airflow,password=airflow"
 #     fstype: cifs
 #     state: mounted
 #   become: true
 #   when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
+
 - name: Mount home shared nfs drive
   ansible.posix.mount:
-    src: "{{ AIRFLOW_SHAREDRIVE_DOMAIN }}:/volume1/Developer/home/airflow"
+    src: "airflow-sharedrive:/volume1/Developer/home/airflow"
     path: /mnt/home/airflow
     opts: "defaults"
     fstype: nfs
@@ -138,7 +147,7 @@
 
 - name: Mount data shared nfs drive
   ansible.posix.mount:
-    src: "{{ AIRFLOW_SHAREDRIVE_DOMAIN }}:/volume1/Developer/data/airflow"
+    src: "airflow-sharedrive:/volume1/Developer/data/airflow"
     path: /data/airflow
     opts: "defaults"
     fstype: nfs
