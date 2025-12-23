@@ -1,6 +1,7 @@
 ---
 dependencies:
   - role: base
+  - role: users
 
 galaxy_info:
   role_name: airflow_common
