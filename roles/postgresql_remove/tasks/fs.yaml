@@ -1,0 +1,6 @@
+---
+- name: Remove postgresql data directory
+  ansible.builtin.file:
+    path: /var/lib/postgresql
+    state: absent
+  become: true

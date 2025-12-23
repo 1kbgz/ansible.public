@@ -1,0 +1,8 @@
+---
+- name: Stop postgresql service
+  ansible.builtin.systemd:
+    name: postgresql@{{ POSTGRES_VERSION }}-main
+    state: stopped
+    enabled: false
+  become: true
+  ignore_errors: true

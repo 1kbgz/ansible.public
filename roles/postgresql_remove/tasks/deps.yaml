@@ -1,0 +1,61 @@
+---
+- name: Remove postgresql packages
+  ansible.builtin.dnf:
+    name:
+      - postgresql
+    state: absent
+  become: true
+  when: OS == 'EL'
+
+- name: Remove redis packages
+  ansible.builtin.apt:
+    name:
+      - postgresql-{{ POSTGRES_VERSION }}
+    state: absent
+    purge: true
+  become: true
+  when: OS == 'Ubuntu'
+
+- name: Remove postgresql packages copied into /usr/local
+  ansible.builtin.file:
+    path: /usr/local/bin/{{file}}
+    state: absent
+  become: true
+  loop:
+    - clusterdb
+    - createdb
+    - createuser
+    - dropdb
+    - dropuser
+    - initdb
+    - oid2name
+    - pg_amcheck
+    - pg_archivecleanup
+    - pg_basebackup
+    - pgbench
+    - pg_checksums
+    - pg_combinebackup
+    - pg_config
+    - pg_controldata
+    - pg_createsubscriber
+    - pg_ctl
+    - pg_dump
+    - pg_dumpall
+    - pg_isready
+    - pg_receivewal
+    - pg_recvlogical
+    - pg_resetwal
+    - pg_restore
+    - pg_rewind
+    - pg_test_fsync
+    - pg_test_timing
+    - pg_upgrade
+    - pg_verifybackup
+    - pg_waldump
+    - pg_walsummary
+    - postgres
+    - psql
+    - reindexdb
+    - vacuumdb
+    - vacuumlo
+  when: OS == 'Ubuntu'

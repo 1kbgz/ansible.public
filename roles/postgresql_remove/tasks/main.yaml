@@ -1,0 +1,9 @@
+---
+- name: Stop and disable postgresql service
+  ansible.builtin.include_tasks: service.yaml
+
+- name: Remove postgresql packages
+  ansible.builtin.include_tasks: deps.yaml
+
+- name: Remove filesystem artifacts
+  ansible.builtin.include_tasks: fs.yaml
