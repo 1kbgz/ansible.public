@@ -1,0 +1,2 @@
+---
+CELERY_WORKER_COUNT: 1
