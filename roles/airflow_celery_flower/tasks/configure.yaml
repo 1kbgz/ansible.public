@@ -4,7 +4,7 @@
     dest: /lib/systemd/system/airflow-celery-flower.service
     mode: '0644'
     owner: root
-    group: "{{ ROOT_USER_GROUP }}"
+    group: root
     content: |
       [Unit]
       Description=Airflow Celery Flower
