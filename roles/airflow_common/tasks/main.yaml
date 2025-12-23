@@ -1,0 +1,11 @@
+---
+- name: Configure airflow common
+  ansible.builtin.include_tasks: configure.yaml
+
+- name: Include Ubuntu specific tasks
+  ansible.builtin.include_tasks: ubuntu.yaml
+  when: OS == 'Ubuntu'
+
+- name: Include Raspbian specific tasks
+  ansible.builtin.include_tasks: raspbian.yaml
+  when: OS == 'Raspbian'
