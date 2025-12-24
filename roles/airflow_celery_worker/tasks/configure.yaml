@@ -15,7 +15,9 @@
       User=airflow
       Environment=AIRFLOW_HOME=/var/lib/airflow
       Type=simple
-      ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues default,workers,{{inventory_hostname}},{{OS|lower}} --celery-hostname {{inventory_hostname}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
+      # https://github.com/apache/airflow/issues/59707
+      # ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues default,workers,{{inventory_hostname}},{{OS|lower}} --celery-hostname {{inventory_hostname}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
+      ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues default,workers,{{inventory_hostname}},{{OS|lower}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
 
       Restart=on-failure
       RestartSec=5s
