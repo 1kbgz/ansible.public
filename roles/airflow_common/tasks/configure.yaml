@@ -39,7 +39,7 @@
   ansible.builtin.pip:
     requirements: /var/lib/venvs/airflow/constraints-3.12.txt
     virtualenv: /var/lib/venvs/airflow
-    virtualenv_python: '12'
+    virtualenv_python: '3.12'
   become: true
   become_user: airflow
 

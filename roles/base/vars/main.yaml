@@ -70,6 +70,7 @@ packages:
     - pkg-config
     - plocate
     - python3.12-dev
+    - python3.12-venv
     - redis
     - redis-server
     - screen
