@@ -15,7 +15,7 @@
 
 - name: Create home directory for mount
   ansible.builtin.file:
-    path: /mnt/home
+    path: /home
     state: directory
     mode: '0775'
     owner: root

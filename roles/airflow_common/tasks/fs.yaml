@@ -112,7 +112,7 @@
 - name: Mount home shared nfs drive
   ansible.posix.mount:
     src: "airflow-sharedrive:/volume1/Developer/home/airflow"
-    path: /mnt/home/airflow
+    path: /home/airflow
     opts: "defaults"
     fstype: nfs
     state: mounted
