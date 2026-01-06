@@ -69,8 +69,7 @@ packages:
     - nfs-common
     - pkg-config
     - plocate
-    # TODO python3.12-dev on 24.04
-    # - python3.11-dev
+    - python3.12-dev
     - redis
     - redis-server
     - screen
