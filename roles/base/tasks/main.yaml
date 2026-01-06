@@ -7,3 +7,9 @@
 
 - name: Configure firewall
   ansible.builtin.include_tasks: firewall.yaml
+
+- name: Configure networking
+  ansible.builtin.include_tasks: network.yaml
+
+- name: Configure limits
+  ansible.builtin.include_tasks: limits.yaml

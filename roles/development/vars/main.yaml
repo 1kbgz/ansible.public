@@ -6,7 +6,3 @@ packages:
   macOS: []
   macOS_casks: []
   notify: []
-    # - Restart cron
-    # - Restart fail2ban
-    # - Restart firewalld
-    # - Restart resolved

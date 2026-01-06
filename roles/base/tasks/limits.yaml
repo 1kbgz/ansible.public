@@ -1,0 +1,44 @@
+---
+- name: Update all limits to max/infinite
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - "* soft core unlimited"
+    - "* hard core unlimited"
+    - "* soft data unlimited"
+    - "* hard data unlimited"
+    - "* soft fsize unlimited"
+    - "* hard fsize unlimited"
+    - "* soft memlock unlimited"
+    - "* hard memlock unlimited"
+    - "* soft nofile 1048576"
+    - "* hard nofile 1048576"
+    - "* soft rss unlimited"
+    - "* hard rss unlimited"
+    - "* soft stack unlimited"
+    - "* hard stack unlimited"
+    - "* soft cpu unlimited"
+    - "* hard cpu unlimited"
+    - "* soft nproc 1048576"
+    - "* hard nproc 1048576"
+    - "* soft as unlimited"
+    - "* hard as unlimited"
+    - "* soft locks unlimited"
+    - "* hard locks unlimited"
+    - "* soft sigpending 1048576"
+    - "* hard sigpending 1048576"
+    - "* soft msgqueue 8192000"
+    - "* hard msgqueue 8192000"
+
+- name: Let users renice to any level
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - "* soft nice -20"
+    - "* hard nice -20"
+    - "* soft rtprio 99"
+    - "* hard rtprio 99"
