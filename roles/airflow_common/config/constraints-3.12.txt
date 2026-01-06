@@ -1,6 +1,6 @@
 
 apache-airflow==3.1.5
---constraint https://raw.githubusercontent.com/apache/airflow/refs/tags/constraints-3.1.5/constraints-3.11.txt
+--constraint https://raw.githubusercontent.com/apache/airflow/refs/tags/constraints-3.1.5/constraints-3.12.txt
 
 apache-airflow-providers-apache-kafka
 apache-airflow-providers-celery
