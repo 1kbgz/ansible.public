@@ -18,5 +18,6 @@ airflow-config
 airflow-ha
 airflow-supervisor
 airflow-priority
+supervisor
 
 apache-airflow-providers-standard
