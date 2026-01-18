@@ -87,7 +87,7 @@
       --username admin \
       --firstname admin \
       --lastname admin \
-      --role admin \
+      --role Admin \
       --email admin \
       --password admin
   args:
