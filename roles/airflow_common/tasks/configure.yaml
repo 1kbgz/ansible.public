@@ -5,7 +5,7 @@
     mode: '0755'
     owner: airflow
     group: services
-    content: "{{ lookup('ansible.builtin.template', '../config/airflow' + AIRFLOW_VERSION + '.cfg') }}"
+    content: "{{ lookup('ansible.builtin.template', '../config/airflow2.cfg') }}"
   become: true
 
 - name: Copy webserver config file into place
@@ -28,7 +28,7 @@
 
 - name: Copy constraints file
   ansible.builtin.copy:
-    src: ../config/constraints-{{ AIRFLOW_VERSION }}-3.12.txt
+    src: ../config/constraints-2-3.12.txt
     dest: /var/lib/venvs/airflow/constraints-3.12.txt
     owner: airflow
     group: services
