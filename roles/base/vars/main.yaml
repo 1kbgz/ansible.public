@@ -108,6 +108,8 @@ packages:
     - libxmlsec1-openssl
     - make
     - nginx
+    - nodejs
+    - npm
     - pkg-config
     - python3
     - python3-dev
