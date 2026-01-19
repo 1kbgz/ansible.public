@@ -98,7 +98,6 @@ packages:
     - fail2ban
     - firewalld
     - git-lfs
-    - insserv
     - keyutils
     - libkrb5-dev
     - libldap2-dev
