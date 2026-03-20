@@ -1,5 +1,5 @@
 apache-airflow
---constraint https://raw.githubusercontent.com/apache/airflow/refs/tags/constraints-2.10.5/constraints-3.12.txt
+--constraint https://raw.githubusercontent.com/apache/airflow/refs/tags/constraints-2.11.2/constraints-3.12.txt
 
 apache-airflow-providers-apache-kafka
 apache-airflow-providers-celery
@@ -13,11 +13,10 @@ apache-airflow-providers-redis
 apache-airflow-providers-smtp
 apache-airflow-providers-sqlite
 apache-airflow-providers-ssh
+apache-airflow-providers-standard
 
 airflow-config
 airflow-ha
 airflow-supervisor
 airflow-priority
 supervisor
-
-apache-airflow-providers-standard
