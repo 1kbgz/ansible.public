@@ -9,15 +9,30 @@
   become: true
 
 # TODO uid here needs to be standardized across servers
+- name: Check NFS host reachability
+  ansible.builtin.wait_for:
+    host: airflow-sharedrive
+    port: 2049
+    timeout: 10
+    state: started
+  register: nfs_check
+  ignore_errors: true
+  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
+
+- name: Warn if NFS host is unreachable
+  ansible.builtin.debug:
+    msg: "NFS host airflow-sharedrive is unreachable — NFS mounts will be skipped"
+  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS' and (nfs_check.failed | default(false))"
+
 - name: Mount airflow lib via nfs
   ansible.posix.mount:
     src: "airflow-sharedrive:/volume1/Developer/var/lib/airflow"
     path: /var/lib/airflow
-    opts: "defaults"
+    opts: "soft,timeo=30,retrans=3"
     fstype: nfs
     state: mounted
   become: true
-  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
+  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS' and not (nfs_check.failed | default(false))"
 
 - name: Create airflow celery dags directory
   ansible.builtin.file:
@@ -113,28 +128,18 @@
   ansible.posix.mount:
     src: "airflow-sharedrive:/volume1/Developer/home/airflow"
     path: /home/airflow
-    opts: "defaults"
+    opts: "soft,timeo=30,retrans=3"
     fstype: nfs
     state: mounted
   become: true
-  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
+  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS' and not (nfs_check.failed | default(false))"
 
 - name: Mount data shared nfs drive
   ansible.posix.mount:
     src: "airflow-sharedrive:/volume1/Developer/data/airflow"
     path: /data/airflow
-    opts: "defaults"
+    opts: "soft,timeo=30,retrans=3"
     fstype: nfs
     state: mounted
   become: true
-  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS'"
-
-- name: Set AIRFLOW_HOME for user
-  ansible.builtin.blockinfile:
-    path: /home/airflow/.bashrc
-    block: |
-      source /var/lib/venvs/airflow/bin/activate
-      export AIRFLOW_HOME=/var/lib/airflow
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - AIRFLOW HOME"
-  become: true
-  become_user: airflow
+  when: "AIRFLOW_LOCATION == 'internal' and OS != 'macOS' and not (nfs_check.failed | default(false))"

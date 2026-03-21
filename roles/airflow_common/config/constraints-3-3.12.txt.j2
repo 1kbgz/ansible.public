@@ -1,6 +1,5 @@
-
-apache-airflow
---constraint https://raw.githubusercontent.com/apache/airflow/refs/tags/constraints-3.1.5/constraints-3.12.txt
+apache-airflow=={{ AIRFLOW_VERSION }}
+--constraint https://raw.githubusercontent.com/apache/airflow/refs/tags/constraints-{{ AIRFLOW_VERSION }}/constraints-{{ PYTHON_VERSION }}.txt
 
 apache-airflow-providers-apache-kafka
 apache-airflow-providers-celery
@@ -15,11 +14,6 @@ apache-airflow-providers-smtp
 apache-airflow-providers-sqlite
 apache-airflow-providers-ssh
 
-airflow-config
-airflow-ha
-airflow-supervisor
-airflow-priority
-supervisor
+airflow-laminar==1.16.5
 
-# Missing
 asyncpg

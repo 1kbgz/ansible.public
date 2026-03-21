@@ -15,9 +15,9 @@
       User=airflow
       Environment=AIRFLOW_HOME=/var/lib/airflow
       Type=simple
-      # https://github.com/apache/airflow/issues/59707
-      # ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues default,workers,{{inventory_hostname}},{{OS|lower}} --celery-hostname {{inventory_hostname}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
-      ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues default,workers,{{inventory_hostname}},{{OS|lower}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
+      # https://github.com/apache/airflow/issues/59707 — re-enable --celery-hostname when fixed
+      # ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues {{CELERY_WORKER_QUEUES}} --celery-hostname {{inventory_hostname}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
+      ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues {{CELERY_WORKER_QUEUES}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
 
       Restart=on-failure
       RestartSec=5s
@@ -28,4 +28,19 @@
   notify:
     - Reload daemon files
     - Restart celery worker
+  become: true
+
+- name: Restart celery worker after upgrade
+  ansible.builtin.systemd:
+    name: airflow-celery-worker
+    state: restarted
+    enabled: true
+  become: true
+  when: airflow_upgraded | default(false)
+
+- name: Ensure celery worker is started and enabled
+  ansible.builtin.systemd:
+    name: airflow-celery-worker
+    state: started
+    enabled: true
   become: true

@@ -5,7 +5,7 @@
     mode: '0755'
     owner: airflow
     group: services
-    content: "{{ lookup('ansible.builtin.template', '../config/airflow2.cfg') }}"
+    content: "{{ lookup('ansible.builtin.template', '../config/airflow' + AIRFLOW_MAJOR_VERSION + '.cfg') }}"
   become: true
 
 - name: Copy webserver config file into place
@@ -28,30 +28,25 @@
 
 - name: Copy constraints file
   ansible.builtin.copy:
-    src: ../config/constraints-2-3.12.txt
-    dest: /var/lib/venvs/airflow/constraints-3.12.txt
+    content: "{{ lookup('ansible.builtin.template', '../config/constraints-' + AIRFLOW_MAJOR_VERSION + '-' + PYTHON_VERSION + '.txt.j2') }}"
+    dest: /var/lib/venvs/airflow/constraints-{{ PYTHON_VERSION }}.txt
     owner: airflow
     group: services
     mode: '0644'
   become: true
 
-- name: Setup airflow virtualenv
+- name: Install or upgrade airflow virtualenv
   ansible.builtin.pip:
-    requirements: /var/lib/venvs/airflow/constraints-3.12.txt
+    requirements: /var/lib/venvs/airflow/constraints-{{ PYTHON_VERSION }}.txt
     virtualenv: /var/lib/venvs/airflow
-    virtualenv_python: '3.12'
+    virtualenv_python: "{{ PYTHON_VERSION }}"
   become: true
   become_user: airflow
+  register: airflow_pip_result
 
-- name: Set AIRFLOW_HOME for user
-  ansible.builtin.blockinfile:
-    path: /home/airflow/.bashrc
-    block: |
-      source /var/lib/venvs/airflow/bin/activate
-      export AIRFLOW_HOME=/var/lib/airflow
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - AIRFLOW HOME"
-  become: true
-  become_user: airflow
+- name: Record whether airflow was installed or upgraded
+  ansible.builtin.set_fact:
+    airflow_upgraded: "{{ airflow_pip_result.changed }}"
 
 - name: Set AIRFLOW_HOME for user
   ansible.builtin.blockinfile:

@@ -1,2 +1,3 @@
 ---
 CELERY_WORKER_COUNT: 1
+CELERY_WORKER_QUEUES: "default,workers,{{inventory_hostname}},{{OS|lower}}"

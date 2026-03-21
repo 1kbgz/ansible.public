@@ -15,7 +15,7 @@
       User=airflow
       Environment=AIRFLOW_HOME=/var/lib/airflow
       Type=simple
-      ExecStart=/var/lib/venvs/airflow/bin/airflow api-server --pid /var/lib/airflow/apiserver.pid --port {{ AIRFLOW_APISERVER_PORT }}
+      ExecStart=/var/lib/venvs/airflow/bin/airflow webserver --pid /var/lib/airflow/apiserver.pid --port {{ AIRFLOW_APISERVER_PORT }}
       Restart=on-failure
       RestartSec=5s
       PrivateTmp=true
@@ -107,3 +107,28 @@
     - Reload daemon files
     - Restart airflow-dag-processor
   become: true
+
+- name: Restart airflow services after upgrade
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: true
+  become: true
+  loop:
+    - airflow-api-server
+    - airflow-scheduler
+    - airflow-triggerer
+    - airflow-dag-processor
+  when: airflow_upgraded | default(false)
+
+- name: Ensure airflow server services are started and enabled
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  become: true
+  loop:
+    - airflow-api-server
+    - airflow-scheduler
+    - airflow-triggerer
+    - airflow-dag-processor
