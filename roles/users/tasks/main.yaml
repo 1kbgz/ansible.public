@@ -1,4 +1,28 @@
 ---
+# On Ubuntu, dialout=20 and fax=21 conflict with our desired staff=20 and sudo=21.
+# Remap dialout/fax to unused GIDs first, then fix ownership of any affected files.
+# Only runs if dialout currently occupies GID 20 (i.e. remapping hasn't been done yet).
+- name: Check if GID normalization is needed
+  ansible.builtin.shell: getent group dialout | cut -d: -f3
+  register: dialout_gid
+  changed_when: false
+  become: true
+  when: OS == 'Ubuntu' and AUTH_SOURCE != 'ipa'
+
+- name: Normalize GIDs (move dialout and fax out of the way)
+  ansible.builtin.shell: |
+    set -e
+    groupmod -g 48 dialout
+    groupmod -g 49 fax
+    find / -xdev -group 20 -exec chgrp -h dialout {} \;
+    find / -xdev -group 21 -exec chgrp -h fax {} \;
+    groupmod -g 20 staff
+    groupmod -g 21 sudo
+    find / -xdev -group 50 -exec chgrp -h staff {} \;
+    find / -xdev -group 27 -exec chgrp -h sudo {} \;
+  become: true
+  when: OS == 'Ubuntu' and AUTH_SOURCE != 'ipa' and dialout_gid.stdout | default('') == '20'
+
 - name: Ensure groups exist
   ansible.builtin.group:
     name: "{{ item.name }}"
