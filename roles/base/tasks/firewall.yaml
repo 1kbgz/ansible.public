@@ -1,4 +1,12 @@
 ---
+- name: Disable and mask UFW (firewalld is the primary firewall)
+  ansible.builtin.systemd:
+    name: ufw
+    state: stopped
+    enabled: false
+    masked: true
+  failed_when: false
+
 - name: Enable traffic in default zone for https service
   ansible.posix.firewalld:
     service: https
@@ -9,6 +17,13 @@
 - name: Enable traffic in default zone for http service
   ansible.posix.firewalld:
     service: http
+    permanent: true
+    state: enabled
+  notify: Restart firewalld
+
+- name: Enable traffic in default zone for ssh service
+  ansible.posix.firewalld:
+    service: ssh
     permanent: true
     state: enabled
   notify: Restart firewalld

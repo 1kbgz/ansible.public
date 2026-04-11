@@ -45,6 +45,7 @@ packages:
     - cron
     - curl
     - dconf-editor
+    - firewalld
     - git
     - git-lfs
     - golang
