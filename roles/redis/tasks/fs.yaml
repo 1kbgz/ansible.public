@@ -33,4 +33,5 @@
     mode: '0775'
     owner: redis
     group: services
+    recurse: true
   become: true
