@@ -3,7 +3,9 @@
 # Remap dialout/fax to unused GIDs first, then fix ownership of any affected files.
 # Only runs if dialout currently occupies GID 20 (i.e. remapping hasn't been done yet).
 - name: Check if GID normalization is needed
-  ansible.builtin.shell: getent group dialout | cut -d: -f3
+  ansible.builtin.shell:
+    cmd: "set -o pipefail && getent group dialout | cut -d: -f3"
+    executable: /bin/bash
   register: dialout_gid
   changed_when: false
   become: true
