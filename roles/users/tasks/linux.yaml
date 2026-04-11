@@ -25,6 +25,15 @@
   when: AUTH_SOURCE != 'ipa'
   # NOTE: external managed by IPA
 
+- name: Stop services for service users before modifying them
+  ansible.builtin.systemd:
+    name: "{{ item.value.username }}"
+    state: stopped
+  become: true
+  loop: "{{ SERVICE_USERS | dict2items }}"
+  failed_when: false
+  when: AUTH_SOURCE != 'ipa'
+
 - name: Add the service users
   ansible.builtin.user:
     name: "{{item.value.username }}"
