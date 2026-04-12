@@ -11,7 +11,7 @@
   ansible.builtin.lineinfile:
     path: /etc/redis/redis.conf
     regexp: '^bind'
-    line: "bind *"
+    line: "bind 0.0.0.0"
     create: true
   become: true
   when: REDIS_LOCATION == 'internal'
