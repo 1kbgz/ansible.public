@@ -1,0 +1,19 @@
+---
+- name: Create ClickHouse log directory
+  ansible.builtin.file:
+    path: /var/log/clickhouse-server
+    state: directory
+    mode: '0775'
+    owner: clickhouse
+    group: clickhouse
+    recurse: true
+  become: true
+
+- name: Create ClickHouse data directory
+  ansible.builtin.file:
+    path: /var/lib/clickhouse
+    state: directory
+    mode: '0775'
+    owner: clickhouse
+    group: clickhouse
+  become: true

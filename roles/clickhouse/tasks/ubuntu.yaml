@@ -1,0 +1,21 @@
+---
+- name: Install ClickHouse apt key
+  ansible.builtin.apt_key:
+    keyserver: hkp://keyserver.ubuntu.com:80
+    id: 8919F6BD2B48D754
+    state: present
+
+- name: Add ClickHouse repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.clickhouse.com/deb stable main"
+    state: present
+    filename: clickhouse
+
+- name: Install ClickHouse packages
+  ansible.builtin.apt:
+    name:
+      - clickhouse-server
+      - clickhouse-client
+      - clickhouse-common-static
+    state: present
+    update_cache: true

@@ -1,0 +1,17 @@
+---
+- name: Include Ubuntu specific tasks
+  ansible.builtin.include_tasks: ubuntu.yaml
+  when: OS == 'Ubuntu'
+
+- name: Run fs operations
+  ansible.builtin.include_tasks: fs.yaml
+
+- name: Configure ClickHouse
+  ansible.builtin.include_tasks: configure.yaml
+
+- name: Enable and start ClickHouse
+  ansible.builtin.systemd:
+    name: clickhouse-server
+    enabled: true
+    state: started
+  become: true

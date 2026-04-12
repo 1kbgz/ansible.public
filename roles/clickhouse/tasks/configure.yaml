@@ -1,0 +1,29 @@
+---
+- name: Configure ClickHouse to listen on private network
+  ansible.builtin.template:
+    src: listen.xml.j2
+    dest: /etc/clickhouse-server/config.d/listen.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: '0644'
+  become: true
+  notify: Restart ClickHouse
+  when: CLICKHOUSE_LOCATION == 'internal'
+
+- name: Open ClickHouse HTTP port in firewall
+  ansible.posix.firewalld:
+    port: "{{ CLICKHOUSE_HTTP_PORT }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  become: true
+  when: CLICKHOUSE_LOCATION == 'internal'
+
+- name: Open ClickHouse native port in firewall
+  ansible.posix.firewalld:
+    port: "{{ CLICKHOUSE_NATIVE_PORT }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  become: true
+  when: CLICKHOUSE_LOCATION == 'internal'
