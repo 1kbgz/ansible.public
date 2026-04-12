@@ -16,3 +16,10 @@
 
 - name: Configure redis
   ansible.builtin.include_tasks: configure.yaml
+
+- name: Enable and start redis
+  ansible.builtin.systemd:
+    name: redis
+    enabled: true
+    state: started
+  become: true

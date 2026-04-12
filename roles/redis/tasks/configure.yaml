@@ -25,12 +25,29 @@
   become: true
   when: REDIS_LOCATION == 'internal'
 
+- name: Disable daemonize for systemd
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^daemonize'
+    line: "daemonize no"
+    create: true
+  become: true
+
 - name: Set output folder
   ansible.builtin.lineinfile:
     path: /etc/redis/redis.conf
     regexp: '^dir'
     line: "dir /var/lib/redis/db/"
     create: true
+  become: true
+  when: REDIS_LOCATION == 'internal'
+
+- name: Open Redis port in firewall
+  ansible.posix.firewalld:
+    port: "{{ REDIS_PORT }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
   become: true
   when: REDIS_LOCATION == 'internal'
 
