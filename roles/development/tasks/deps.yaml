@@ -1,9 +1,16 @@
 ---
+- name: Define Debian-family package helpers
+  ansible.builtin.set_fact:
+    _is_debian_family: "{{ ansible_facts['os_family'] == 'Debian' }}"
+    _is_non_raspbian_debian: "{{ ansible_facts['os_family'] == 'Debian' and OS != 'Raspbian' }}"
+    _is_non_raspbian_amd64: "{{ ansible_facts['os_family'] == 'Debian' and OS != 'Raspbian' and ansible_facts['architecture'] in ['x86_64', 'amd64'] }}"
+  changed_when: false
+
 - name: Update apt
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 86400
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: Install the 'Development tools' package group
   ansible.builtin.dnf:
@@ -22,7 +29,7 @@
   ansible.builtin.apt:
     name: build-essential
     state: present
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: Install "core" packages
   ansible.builtin.dnf:
@@ -31,12 +38,12 @@
   notify: "{{ packages.notify }}"
   when: OS == 'EL'
 
-- name: Install "core" packages
+- name: Install "core" packages - Debian family
   ansible.builtin.apt:
     name: "{{ packages.Ubuntu }}"
     state: present
   notify: "{{ packages.notify }}"
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Install "core" packages
   ansible.builtin.apt:
@@ -83,7 +90,7 @@
   ansible.builtin.apt_key:
     url: https://dl.google.com/linux/linux_signing_key.pub
     state: present
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Adding repository for chrome
   ansible.builtin.apt_repository:
@@ -91,7 +98,7 @@
     state: present
     filename: google-chrome
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Installing google-chrome-stable
   ansible.builtin.apt:
@@ -99,11 +106,11 @@
     state: present
     force_apt_get: true
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add deadsnakes python
   ansible.builtin.apt_repository:
     validate_certs: false
     repo: 'ppa:deadsnakes/ppa'
     state: present
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian

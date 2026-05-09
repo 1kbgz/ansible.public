@@ -1,8 +1,41 @@
 ---
+- name: Ensure resolved drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Allow single-label hostnames via upstream unicast DNS
+  ansible.builtin.copy:
+    dest: /etc/systemd/resolved.conf.d/single-label.conf
+    content: |
+      [Resolve]
+      ResolveUnicastSingleLabel=yes
+    mode: '0644'
+  notify: Restart resolved
+
+- name: Inspect /etc/resolv.conf
+  ansible.builtin.stat:
+    path: /etc/resolv.conf
+  register: _resolv_conf
+
+- name: Detect tailscale-managed resolv.conf
+  ansible.builtin.command: head -1 /etc/resolv.conf
+  register: _resolv_head
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: _resolv_conf.stat.exists and not _resolv_conf.stat.islnk
+
+# When tailscaled is running it overwrites /etc/resolv.conf with its
+# MagicDNS pointer (100.100.100.100). Leave it alone in that case --
+# converting it to a systemd-resolved symlink would break tailnet DNS.
 - name: Remove /etc/resolv.conf symlink
   ansible.builtin.file:
     path: /etc/resolv.conf
     state: absent
+  when:
+    - not (_resolv_head.stdout is defined and 'tailscale' in (_resolv_head.stdout | lower))
 
 - name: Link /run/systemd/resolve/resolv.conf to /etc/resolv.conf
   ansible.builtin.file:
@@ -10,3 +43,5 @@
     dest: /etc/resolv.conf
     state: link
   notify: Restart resolved
+  when:
+    - not (_resolv_head.stdout is defined and 'tailscale' in (_resolv_head.stdout | lower))

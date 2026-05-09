@@ -1,0 +1,27 @@
+---
+# Tailscale auth: by default expects an injected auth key (per-host or via
+# `-e tailscale_auth_key=...`). For Headscale-issued preauth keys, generate
+# them on your hub, e.g.:
+#   ssh root@<headscale-host> \
+#     'headscale preauthkey create -u <user> --reusable=false --expiration=1h'
+
+# URL of the Headscale control plane. Override per-inventory / per-host.
+# Set to empty string to fall back to the public Tailscale coordination
+# server.
+headscale_login_server: ""
+
+# Optional extra args appended to `tailscale up`. Examples:
+#   "--accept-routes --ssh"
+tailscale_extra_args: "--accept-routes --accept-dns"
+
+# Whether to call `tailscale up` after install. Set to false on first run
+# if you want to install the package only and authenticate manually.
+tailscale_join: true
+
+# Per-domain split-DNS resolver entries to install on macOS clients via
+# /etc/resolver/<zone>. Open-source `tailscaled` on macOS (Homebrew) does
+# not install split-DNS routes into scutil, so apps using the system
+# resolver (`host`, browsers, etc.) won't see the tailnet split zone
+# unless we add an /etc/resolver entry that points at the tailnet's
+# MagicDNS resolver (100.100.100.100). Set to [] to disable.
+tailscale_macos_resolver_zones: []

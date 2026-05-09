@@ -1,0 +1,29 @@
+# headscale-admin (tailnet-only).
+#
+# Bound to the hub's tailnet IP only -- not reachable from the public
+# internet. `handle` blocks force evaluation order: API paths reverse-proxy
+# to headscale on localhost; everything else falls through to the SPA.
+#
+# Imported from the main Caddyfile via `import conf.d/*.caddy`.
+
+http://{{ headscale_admin_hostname }}:80 {
+  bind {{ headscale_admin_bind_address }}
+
+  encode gzip zstd
+
+  @api path /api/* /apikey* /key /machine* /derp* /oidc/* /windows*
+  handle @api {
+    reverse_proxy 127.0.0.1:8080 {
+      transport http {
+        versions 1.1
+      }
+      flush_interval -1
+    }
+  }
+
+  handle {
+    root * {{ headscale_admin_install_dir }}
+    try_files {path} /index.html
+    file_server
+  }
+}

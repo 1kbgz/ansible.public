@@ -77,4 +77,4 @@
   notify:
     - Reload daemon files
     - Restart redis
-  when: OS == "Ubuntu"
+  when: ansible_facts['os_family'] == 'Debian'

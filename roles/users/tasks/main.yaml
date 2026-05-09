@@ -9,7 +9,7 @@
   register: dialout_gid
   changed_when: false
   become: true
-  when: OS == 'Ubuntu' and AUTH_SOURCE != 'ipa'
+  when: ansible_facts['os_family'] == 'Debian' and AUTH_SOURCE != 'ipa'
 
 - name: Normalize GIDs (move dialout and fax out of the way)
   ansible.builtin.shell: |
@@ -23,7 +23,7 @@
     find / -xdev -group 50 -exec chgrp -h staff {} \;
     find / -xdev -group 27 -exec chgrp -h sudo {} \;
   become: true
-  when: OS == 'Ubuntu' and AUTH_SOURCE != 'ipa' and dialout_gid.stdout | default('') == '20'
+  when: ansible_facts['os_family'] == 'Debian' and AUTH_SOURCE != 'ipa' and dialout_gid.stdout | default('') == '20'
 
 - name: Ensure groups exist
   ansible.builtin.group:
@@ -63,8 +63,8 @@
 
 - name: Include Linux specific tasks
   ansible.builtin.include_tasks: linux.yaml
-  when: OS == 'Ubuntu' or OS == 'EL'
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
 
 - name: Include Ubuntu specific tasks
   ansible.builtin.include_tasks: sudo.yaml
-  when: OS == 'Ubuntu' or OS == 'EL'
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']

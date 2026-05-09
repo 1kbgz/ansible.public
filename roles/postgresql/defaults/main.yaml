@@ -2,3 +2,7 @@
 POSTGRES_VERSION: 18
 POSTGRES_PORT: 7600
 POSTGRES_LOCATION: internal
+
+# Extra CIDRs to allow md5 access to all dbs/users in pg_hba.conf,
+# in addition to 127.0.0.1/32. Default is empty (loopback only).
+pg_hba_extra_cidrs: []

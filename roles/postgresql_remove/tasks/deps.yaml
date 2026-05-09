@@ -14,7 +14,7 @@
     state: absent
     purge: true
   become: true
-  when: OS == 'Ubuntu'
+  when: ansible_facts['os_family'] == 'Debian'
 
 - name: Remove postgresql packages copied into /usr/local
   ansible.builtin.file:
@@ -58,4 +58,4 @@
     - reindexdb
     - vacuumdb
     - vacuumlo
-  when: OS == 'Ubuntu'
+  when: ansible_facts['os_family'] == 'Debian'

@@ -5,3 +5,7 @@ POSTGRES_LOCATION: internal
 
 AIRFLOW_POSTGRES_HOST: 127.0.0.1
 AIRFLOW_POSTGRES_PORT: 8102
+
+# Extra CIDRs to allow md5 access to airflow db in pg_hba.conf,
+# in addition to 127.0.0.1/32. Default is empty (loopback only).
+pg_hba_extra_cidrs: []

@@ -1,0 +1,153 @@
+---
+# Install Tailscale and (optionally) join the Headscale tailnet.
+# Linux (Debian/Ubuntu): apt repo. macOS: homebrew. Other OSes: extend here.
+
+- name: Linux (Debian/Ubuntu) install
+  when: ansible_facts['os_family'] == 'Debian'
+  become: true
+  block:
+    - name: Add Tailscale GPG key
+      ansible.builtin.get_url:
+        url: "https://pkgs.tailscale.com/stable/{{ ansible_facts['distribution'] | lower }}/{{ ansible_facts['distribution_release'] }}.noarmor.gpg"
+        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        mode: '0644'
+
+    - name: Add Tailscale apt source
+      ansible.builtin.get_url:
+        url: "https://pkgs.tailscale.com/stable/{{ ansible_facts['distribution'] | lower }}/{{ ansible_facts['distribution_release'] }}.tailscale-keyring.list"
+        dest: /etc/apt/sources.list.d/tailscale.list
+        mode: '0644'
+
+    - name: Install Tailscale
+      ansible.builtin.apt:
+        name: tailscale
+        state: present
+        update_cache: true
+
+    - name: Enable + start tailscaled
+      ansible.builtin.systemd:
+        name: tailscaled
+        enabled: true
+        state: started
+
+- name: MacOS install (Homebrew)
+  when: ansible_facts['os_family'] == 'Darwin'
+  block:
+    - name: Install Tailscale via Homebrew
+      community.general.homebrew:
+        name: tailscale
+        state: present
+
+    - name: Resolve real tailscaled path (homebrew Cellar)
+      ansible.builtin.shell: |
+        readlink -f "$(brew --prefix tailscale)/bin/tailscaled"
+      args:
+        executable: /bin/bash
+      register: _tailscaled_bin
+      changed_when: false
+
+    - name: Install tailscaled as a system daemon (launchd)
+      become: true
+      ansible.builtin.command: "{{ _tailscaled_bin.stdout | trim }} install-system-daemon"
+      args:
+        creates: /Library/LaunchDaemons/com.tailscale.tailscaled.plist
+
+    # Open-source tailscaled on macOS doesn't install split-DNS routes into
+    # scutil; system-resolver clients (`host`, curl, browsers) ignore the
+    # tailnet's split zones unless we drop /etc/resolver/<zone> files that
+    # point at MagicDNS (100.100.100.100), which already forwards the zone
+    # to the configured upstream (e.g. dnsmasq on the hub).
+    - name: Install per-zone /etc/resolver entries (macOS split-DNS shim)
+      become: true
+      when: tailscale_macos_resolver_zones | length > 0
+      ansible.builtin.copy:
+        dest: "/etc/resolver/{{ item }}"
+        content: "nameserver 100.100.100.100\n"
+        owner: root
+        group: wheel
+        mode: '0644'
+      loop: "{{ tailscale_macos_resolver_zones }}"
+
+    - name: Flush macOS DNS cache
+      become: true
+      when: tailscale_macos_resolver_zones | length > 0
+      ansible.builtin.shell: |
+        dscacheutil -flushcache
+        killall -HUP mDNSResponder
+      changed_when: false
+
+- name: Tear down legacy WireGuard (best effort, no-op if not present)
+  when: ansible_facts['os_family'] == 'Debian'
+  become: true
+  block:
+    - name: Stop wg-quick@wg0
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Remove WireGuard packages
+      ansible.builtin.apt:
+        name:
+          - wireguard
+          - wireguard-tools
+        state: absent
+        purge: true
+      failed_when: false
+
+    - name: Remove WireGuard config dir
+      ansible.builtin.file:
+        path: /etc/wireguard
+        state: absent
+
+    - name: Remove NetworkManager wg0 connections
+      ansible.builtin.shell: |
+        set -e
+        for f in /etc/NetworkManager/system-connections/wg0.*; do
+          [ -e "$f" ] && rm -f "$f"
+        done
+      changed_when: false
+      failed_when: false
+
+- name: Check current Tailscale status
+  ansible.builtin.command: tailscale status --json
+  register: _ts_status
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Parse current Tailscale status
+  ansible.builtin.set_fact:
+    _ts_status_json: "{{ _ts_status.stdout | from_json }}"
+  when:
+    - _ts_status.rc == 0
+    - _ts_status.stdout | length > 0
+
+- name: Join tailnet (tailscale up)
+  ansible.builtin.command: >-
+    tailscale up
+    {{ ('--login-server=' ~ headscale_login_server) if (headscale_login_server | length > 0) else '' }}
+    --auth-key={{ tailscale_auth_key }}
+    --hostname={{ tailscale_hostname | default(inventory_hostname_short | default(inventory_hostname)) }}
+    {{ tailscale_extra_args }}
+  become: true
+  when:
+    - tailscale_join | bool
+    - tailscale_auth_key is defined
+    - tailscale_auth_key | length > 0
+  changed_when: true
+  no_log: true
+
+- name: Refresh Tailscale DNS and route preferences on joined nodes
+  ansible.builtin.shell: |
+    set -eu
+    tailscale set --accept-dns=false
+    tailscale set \
+      --accept-routes={{ 'true' if ('--accept-routes' in tailscale_extra_args) else 'false' }} \
+      --accept-dns={{ 'true' if ('--accept-dns' in tailscale_extra_args) else 'false' }}
+  become: true
+  when:
+    - _ts_status_json is defined
+    - _ts_status_json.BackendState | default('') == 'Running'
+  changed_when: false

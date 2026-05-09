@@ -58,8 +58,9 @@
     block: |
       host all all 127.0.0.1/32 ident
       host all all 127.0.0.1/32 md5
-      host all all 10.8.0.1/32 md5
-      host all all 10.10.0.1/32 md5
+      {% for cidr in pg_hba_extra_cidrs %}
+      host all all {{ cidr }} md5
+      {% endfor %}
   become: true
   become_user: postgres
 

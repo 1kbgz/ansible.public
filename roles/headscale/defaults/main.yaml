@@ -1,0 +1,36 @@
+---
+# Headscale package version. Override per-deployment.
+headscale_version: "0.26.1"
+
+# Local controller path containing rendered Headscale + Caddy configs
+# (config.yaml, derp.yaml, acl.hujson, Caddyfile). Required.
+headscale_secrets_dir: ""
+
+# Public hostname Headscale is served at via Caddy. Required.
+headscale_public_hostname: ""
+
+# Headscale users to ensure exist (idempotent).
+headscale_users: []
+
+# CIDR(s) the hub advertises into the tailnet via `tailscale up
+# --advertise-routes=...`. Empty list disables subnet routing on the hub.
+headscale_subnet_router_routes: []
+
+# Tailscale hostname the hub registers with on Headscale.
+headscale_subnet_router_hostname: ""
+
+# Owner of the hub's tailscale node (must exist in headscale_users).
+headscale_subnet_router_user: ""
+
+# Optional headscale-admin web UI (goodieshq/headscale-admin). Bound to
+# the tailnet only -- never exposed to the public internet.
+headscale_admin_enabled: false
+# Pinned release tag from https://github.com/goodieshq/headscale-admin/releases
+headscale_admin_version: "0.25.6"
+# Hostname the SPA is served at over the tailnet (e.g. headscale.int).
+# Resolved by the hub's dnsmasq via the tailnet host-records refresh.
+headscale_admin_hostname: ""
+# Tailnet IP Caddy binds the admin site on. Use the hub's 100.64.0.x address.
+headscale_admin_bind_address: ""
+# Where the static SPA is unpacked.
+headscale_admin_install_dir: "/var/lib/headscale-admin"

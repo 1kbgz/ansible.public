@@ -1,0 +1,313 @@
+---
+# Idempotent install + config of Headscale + Caddy + Tailscale on a hub.
+
+- name: Verify secrets dir exists on controller
+  ansible.builtin.stat:
+    path: "{{ headscale_secrets_dir }}"
+  delegate_to: localhost
+  become: false
+  register: _secrets_dir_stat
+
+- name: Fail if controller is missing secrets dir
+  ansible.builtin.fail:
+    msg: |
+      headscale_secrets_dir={{ headscale_secrets_dir }} does not exist on the
+      controller. Set it to a directory containing config.yaml, derp.yaml,
+      acl.hujson, and Caddyfile.
+  when: not _secrets_dir_stat.stat.exists or not _secrets_dir_stat.stat.isdir
+
+# base packages
+- name: Install dependencies
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - debian-archive-keyring
+      - debian-keyring
+      - gnupg
+      - jq
+      - lsb-release
+      - unzip
+    state: present
+    update_cache: true
+
+# Caddy
+- name: Add Caddy GPG key
+  ansible.builtin.get_url:
+    url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+    dest: /tmp/caddy.gpg.key
+    mode: '0644'
+
+- name: Dearmor Caddy GPG key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg /tmp/caddy.gpg.key
+    creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+
+- name: Add Caddy apt source
+  ansible.builtin.get_url:
+    url: https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt
+    dest: /etc/apt/sources.list.d/caddy-stable.list
+    mode: '0644'
+
+- name: Install Caddy
+  ansible.builtin.apt:
+    name: caddy
+    state: present
+    update_cache: true
+
+# Headscale
+- name: Get installed Headscale version (if any)
+  ansible.builtin.command: dpkg-query -W -f=${Version} headscale
+  register: _headscale_pkg
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Download Headscale deb {{ headscale_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/juanfont/headscale/releases/download/v{{ headscale_version }}/headscale_{{ headscale_version }}_linux_amd64.deb"
+    dest: "/tmp/headscale_{{ headscale_version }}_linux_amd64.deb"
+    mode: '0644'
+  when: _headscale_pkg.stdout != headscale_version
+
+- name: Install Headscale deb {{ headscale_version }}
+  ansible.builtin.apt:
+    deb: "/tmp/headscale_{{ headscale_version }}_linux_amd64.deb"
+  when: _headscale_pkg.stdout != headscale_version
+  notify: Restart headscale
+
+# Tailscale (so the hub can act as the subnet router)
+- name: Add Tailscale GPG key
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/ubuntu/{{ ansible_facts['distribution_release'] }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: '0644'
+
+- name: Add Tailscale apt source
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/ubuntu/{{ ansible_facts['distribution_release'] }}.tailscale-keyring.list"
+    dest: /etc/apt/sources.list.d/tailscale.list
+    mode: '0644'
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+    update_cache: true
+
+# Headscale config dirs + files
+- name: Ensure /etc/headscale exists
+  ansible.builtin.file:
+    path: /etc/headscale
+    state: directory
+    mode: '0755'
+
+- name: Ensure /var/lib/headscale exists
+  ansible.builtin.file:
+    path: /var/lib/headscale
+    state: directory
+    owner: headscale
+    group: headscale
+    mode: '0750'
+
+- name: Deploy Headscale config files
+  ansible.builtin.copy:
+    src: "{{ headscale_secrets_dir }}/{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0644'
+  loop:
+    - { src: 'config.yaml', dest: '/etc/headscale/config.yaml' }
+    - { src: 'derp.yaml', dest: '/etc/headscale/derp.yaml' }
+    - { src: 'acl.hujson', dest: '/etc/headscale/acl.hujson' }
+  notify: Restart headscale
+
+# Caddy config
+- name: Ensure /etc/caddy exists
+  ansible.builtin.file:
+    path: /etc/caddy
+    state: directory
+    mode: '0755'
+
+- name: Deploy Caddyfile
+  ansible.builtin.copy:
+    src: "{{ headscale_secrets_dir }}/Caddyfile"
+    dest: /etc/caddy/Caddyfile
+    mode: '0644'
+  notify: Reload caddy
+
+# Optional headscale-admin SPA (tailnet-only).
+- name: Headscale admin UI
+  when: headscale_admin_enabled | bool
+  block:
+    - name: Validate admin UI vars
+      ansible.builtin.assert:
+        that:
+          - headscale_admin_hostname | length > 0
+          - headscale_admin_bind_address | length > 0
+        fail_msg: "headscale_admin_enabled requires headscale_admin_hostname and headscale_admin_bind_address"
+
+    - name: Ensure admin install dir
+      ansible.builtin.file:
+        path: "{{ headscale_admin_install_dir }}"
+        state: directory
+        owner: caddy
+        group: caddy
+        mode: '0755'
+
+    - name: Check installed admin UI version
+      ansible.builtin.slurp:
+        src: "{{ headscale_admin_install_dir }}/.version"
+      register: _hs_admin_installed
+      failed_when: false
+      changed_when: false
+
+    - name: Download headscale-admin {{ headscale_admin_version }}
+      ansible.builtin.unarchive:
+        src: "https://github.com/goodieshq/headscale-admin/releases/download/v{{ headscale_admin_version }}/admin.zip"
+        dest: "{{ headscale_admin_install_dir }}"
+        remote_src: true
+        owner: caddy
+        group: caddy
+      when: (_hs_admin_installed.content | default('') | b64decode | trim) != headscale_admin_version
+      register: _hs_admin_download
+      notify: Stamp installed admin UI version
+
+    - name: Ensure /etc/caddy/conf.d exists
+      ansible.builtin.file:
+        path: /etc/caddy/conf.d
+        state: directory
+        mode: '0755'
+
+    - name: Deploy headscale-admin Caddy fragment
+      ansible.builtin.template:
+        src: headscale-admin.caddy.j2
+        dest: /etc/caddy/conf.d/headscale-admin.caddy
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload caddy
+
+    - name: Ensure main Caddyfile imports conf.d/*.caddy
+      ansible.builtin.lineinfile:
+        path: /etc/caddy/Caddyfile
+        line: "import conf.d/*.caddy"
+        insertafter: EOF
+        state: present
+      notify: Reload caddy
+
+# firewalld
+- name: Allow http+https through firewalld
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    state: enabled
+  loop:
+    - http
+    - https
+  notify: Restart firewalld
+
+- name: Flush firewalld handlers
+  ansible.builtin.meta: flush_handlers
+
+# enable services
+- name: Enable + start headscale, caddy, tailscaled
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - headscale
+    - caddy
+    - tailscaled
+
+- name: Quick health probe
+  ansible.builtin.uri:
+    url: "https://{{ headscale_public_hostname }}/health"
+    return_content: false
+    status_code: [200, 204]
+  register: _hs_health
+  retries: 6
+  delay: 5
+  until: _hs_health is success
+  ignore_errors: true
+
+- name: Show health probe result
+  ansible.builtin.debug:
+    msg: >-
+      Headscale health: {{ 'OK' if _hs_health is success else 'FAILED — investigate caddy/headscale logs' }}
+
+# users
+- name: List existing headscale users
+  ansible.builtin.command: headscale users list -o json
+  register: _hs_users
+  changed_when: false
+  check_mode: false
+
+- name: Create headscale users
+  ansible.builtin.command: "headscale users create {{ item }}"
+  loop: "{{ headscale_users }}"
+  when: item not in (_hs_users.stdout | from_json | map(attribute='name') | list)
+  register: _hs_user_create
+  changed_when: _hs_user_create.rc == 0
+
+# subnet router on the hub
+- name: Check tailscale status on hub
+  ansible.builtin.command: tailscale status --json
+  register: _ts_status
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Mint preauth key for the hub subnet router
+  ansible.builtin.shell: |
+    set -eo pipefail
+    uid=$(headscale users list -o json \
+      | jq -r '.[] | select(.name=="{{ headscale_subnet_router_user }}") | .id')
+    [ -n "$uid" ] || { echo "user {{ headscale_subnet_router_user }} not found" >&2; exit 1; }
+    headscale preauthkeys create -u "$uid" --expiration=1h -o json
+  args:
+    executable: /bin/bash
+  register: _hs_preauth
+  when:
+    - headscale_subnet_router_routes | length > 0
+    - (_ts_status.stdout | from_json).BackendState | default('NoState') != 'Running'
+  changed_when: false
+  no_log: true
+
+- name: Bring up tailscale on hub as subnet router
+  ansible.builtin.command: >-
+    tailscale up
+    --login-server=https://{{ headscale_public_hostname }}
+    --auth-key={{ (_hs_preauth.stdout | from_json).key }}
+    --advertise-routes={{ headscale_subnet_router_routes | join(',') }}
+    --hostname={{ headscale_subnet_router_hostname }}
+  when:
+    - headscale_subnet_router_routes | length > 0
+    - _hs_preauth is defined
+    - _hs_preauth is not skipped
+  changed_when: true
+  no_log: true
+
+- name: List headscale routes
+  ansible.builtin.command: headscale nodes list-routes -o json
+  register: _hs_routes
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: headscale_subnet_router_routes | length > 0
+
+- name: Approve advertised subnet routes for the hub
+  ansible.builtin.shell: |
+    set -eo pipefail
+    node_id=$(headscale nodes list -o json \
+      | jq -r '.[] | select(.given_name=="{{ headscale_subnet_router_hostname }}") | .id')
+    [ -n "$node_id" ] || { echo "no node yet"; exit 0; }
+    # NOTE: `approve-routes -r` REPLACES the approved set, so all routes
+    # must be passed in a single comma-separated invocation.
+    headscale nodes approve-routes -i "$node_id" -r "{{ headscale_subnet_router_routes | join(',') }}" || true
+  args:
+    executable: /bin/bash
+  when: headscale_subnet_router_routes | length > 0
+  changed_when: false
+  failed_when: false

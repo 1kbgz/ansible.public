@@ -1,0 +1,23 @@
+---
+- name: Restart headscale
+  ansible.builtin.systemd:
+    name: headscale
+    state: restarted
+
+- name: Stamp installed admin UI version
+  ansible.builtin.copy:
+    dest: "{{ headscale_admin_install_dir }}/.version"
+    content: "{{ headscale_admin_version }}"
+    owner: caddy
+    group: caddy
+    mode: '0644'
+
+- name: Reload caddy
+  ansible.builtin.systemd:
+    name: caddy
+    state: restarted
+
+- name: Restart firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: restarted

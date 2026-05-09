@@ -1,9 +1,16 @@
 ---
+- name: Define Debian-family package helpers
+  ansible.builtin.set_fact:
+    _is_debian_family: "{{ ansible_facts['os_family'] == 'Debian' }}"
+    _is_non_raspbian_debian: "{{ ansible_facts['os_family'] == 'Debian' and OS != 'Raspbian' }}"
+    _is_non_raspbian_amd64: "{{ ansible_facts['os_family'] == 'Debian' and OS != 'Raspbian' and ansible_facts['architecture'] in ['x86_64', 'amd64'] }}"
+  changed_when: false
+
 - name: Update apt
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 86400
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: Install the 'Development tools' package group
   ansible.builtin.dnf:
@@ -22,7 +29,7 @@
   ansible.builtin.apt:
     name: build-essential
     state: present
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: Install "core" packages - EL
   ansible.builtin.dnf:
@@ -31,12 +38,12 @@
   notify: "{{ packages.notify }}"
   when: OS == 'EL'
 
-- name: Install "core" packages - Ubuntu
+- name: Install "core" packages - Debian family
   ansible.builtin.apt:
     name: "{{ packages.Ubuntu }}"
     state: present
   notify: "{{ packages.notify }}"
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Install "core" packages - Raspbian
   ansible.builtin.apt:
@@ -83,7 +90,7 @@
   ansible.builtin.apt_key:
     url: https://dl.google.com/linux/linux_signing_key.pub
     state: present
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add chrome apt repository
   ansible.builtin.apt_repository:
@@ -91,13 +98,13 @@
     state: present
     filename: google-chrome
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Install google-chrome-stable
   ansible.builtin.apt:
     name: google-chrome-stable
     state: present
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add nodesource NodeJS key
   ansible.builtin.get_url:
@@ -106,22 +113,22 @@
     mode: '0644'
     owner: root
     group: root
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: De-armor nodesource key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/nodesource.gpg /usr/share/keyrings/nodesource.gpg.key'
   args:
     creates: /usr/share/keyrings/nodesource.gpg
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: Add nodesource NodeJS apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main'
+    repo: 'deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main'
     state: present
     filename: nodesource
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_debian_family
 
 - name: Add LLVM key
   ansible.builtin.get_url:
@@ -130,14 +137,14 @@
     mode: '0644'
     owner: root
     group: root
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: De-armor LLVM key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/llvm-snapshot.gpg /usr/share/keyrings/llvm-snapshot.gpg.key'
   args:
     creates: /usr/share/keyrings/llvm-snapshot.gpg
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Add LLVM apt repository
   ansible.builtin.apt_repository:
@@ -145,7 +152,7 @@
     state: present
     filename: llvm
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Add apache arrow key
   ansible.builtin.get_url:
@@ -154,14 +161,14 @@
     mode: '0644'
     owner: root
     group: root
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: De-armor apache arrow key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
   args:
     creates: /usr/share/keyrings/apache-arrow-apt-source.gpg
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Add apache arrow apt repository
   ansible.builtin.apt_repository:
@@ -169,7 +176,7 @@
     state: present
     filename: apache-arrow
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add newrelic key
   ansible.builtin.get_url:
@@ -178,14 +185,14 @@
     mode: '0644'
     owner: root
     group: root
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: De-armor newrelic key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/newrelic-infra.gpg /usr/share/keyrings/newrelic-infra.gpg.key'
   args:
     creates: /usr/share/keyrings/newrelic-infra.gpg
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Add newrelic apt repository
   ansible.builtin.apt_repository:
@@ -193,7 +200,7 @@
     state: present
     filename: newrelic-infra
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add postgresql key
   ansible.builtin.get_url:
@@ -202,14 +209,14 @@
     mode: '0644'
     owner: root
     group: root
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: De-armor postgresql key
   ansible.builtin.command:
     cmd: 'gpg --dearmor -o /usr/share/keyrings/postgresql.gpg /usr/share/keyrings/postgresql.gpg.key'
   args:
     creates: /usr/share/keyrings/postgresql.gpg
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 - name: Add postgresql apt repository
   ansible.builtin.apt_repository:
@@ -217,7 +224,7 @@
     state: present
     filename: postgresql
     update_cache: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add micromamba
   ansible.builtin.shell: |
@@ -230,7 +237,7 @@
     creates: /usr/local/bin/micromamba
     executable: /bin/bash
   become: true
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_amd64
 
 - name: Add uv
   ansible.builtin.shell: |
@@ -240,7 +247,7 @@
       mv ~/.local/bin/uv* /usr/local/bin/
   args:
     executable: /bin/bash
-  when: OS == 'Ubuntu'
+  when: _is_non_raspbian_debian
 
 # - name: Add rustup
 #   ansible.builtin.shell: |
