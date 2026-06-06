@@ -13,3 +13,7 @@
 
 - name: Configure limits
   ansible.builtin.include_tasks: limits.yaml
+
+- name: Free :53 from the systemd-resolved stub listener (opt-in)
+  ansible.builtin.include_tasks: resolved.yaml
+  when: base_disable_resolved_stub | default(false) | bool

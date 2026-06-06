@@ -1,0 +1,27 @@
+---
+# Sync headscale-registered tailnet nodes into dnsmasq as <name>.<zone>
+# host-records, so anything resolving through dnsmasq can address them by name.
+# Included on demand (tasks_from: sync_dnsmasq) AFTER dnsmasq is configured —
+# not part of the role's main.yaml, since ordering is owned by the playbook.
+- name: Render dnsmasq host-records for tailnet nodes
+  ansible.builtin.shell: |
+    set -euo pipefail
+    tmp=$(mktemp)
+    {{ headscale_bin | default('/usr/bin/headscale') }} nodes list -o json \
+      | {{ jq_bin | default('/usr/bin/jq') }} -r '.[] | "host-record=\(.given_name),\(.given_name).{{ headscale_dnsmasq_zone | default("int") }},\(.ip_addresses[0])"' \
+      > "$tmp"
+    if ! cmp -s "$tmp" {{ headscale_dnsmasq_file | default('/etc/dnsmasq.d/tailnet.conf') }} 2>/dev/null; then
+      install -m 0644 -o root -g root "$tmp" {{ headscale_dnsmasq_file | default('/etc/dnsmasq.d/tailnet.conf') }}
+      echo CHANGED
+    fi
+    rm -f "$tmp"
+  args:
+    executable: /bin/bash
+  register: _headscale_dnsmasq_sync
+  changed_when: "'CHANGED' in _headscale_dnsmasq_sync.stdout"
+
+- name: Restart dnsmasq after host-record change
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: restarted
+  when: _headscale_dnsmasq_sync.changed

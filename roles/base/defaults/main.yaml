@@ -6,3 +6,7 @@ packages:
   macOS: []
   macOS_casks: []
   notify: []
+
+# Turn off the systemd-resolved stub listener so a local resolver (e.g. dnsmasq)
+# can bind :53. Opt-in — leave false unless the host runs its own DNS on :53.
+base_disable_resolved_stub: false

@@ -1,0 +1,15 @@
+---
+# Free :53 for a local resolver (e.g. dnsmasq) by turning off the
+# systemd-resolved stub listener. Opt-in via base_disable_resolved_stub.
+- name: Disable systemd-resolved stub listener (free :53 for a local resolver)
+  ansible.builtin.copy:
+    dest: /etc/systemd/resolved.conf.d/10-no-stub.conf
+    content: "[Resolve]\nDNSStubListener=no\n"
+    mode: '0644'
+  register: _base_resolved_stub
+
+- name: Restart systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+  when: _base_resolved_stub.changed
