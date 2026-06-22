@@ -8,7 +8,9 @@
     mode: '0644'
   register: _base_resolved_stub
 
-- name: Restart systemd-resolved
+# Restart inline (not a handler): :53 must be freed now, before a local resolver
+# later in the play binds it — a play-end handler would run too late.
+- name: Restart systemd-resolved  # noqa: no-handler
   ansible.builtin.systemd:
     name: systemd-resolved
     state: restarted

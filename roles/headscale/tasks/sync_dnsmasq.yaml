@@ -20,7 +20,9 @@
   register: _headscale_dnsmasq_sync
   changed_when: "'CHANGED' in _headscale_dnsmasq_sync.stdout"
 
-- name: Restart dnsmasq after host-record change
+# Restart inline (not a handler): this file is included on demand with
+# playbook-owned ordering, so the reload must happen here, not at play end.
+- name: Restart dnsmasq after host-record change  # noqa: no-handler
   ansible.builtin.systemd:
     name: dnsmasq
     state: restarted
