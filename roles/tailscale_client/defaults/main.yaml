@@ -18,6 +18,9 @@ tailscale_extra_args: "--accept-routes --accept-dns"
 # if you want to install the package only and authenticate manually.
 tailscale_join: true
 
+# Whether to remove a legacy wg-quick@wg0 setup on Debian/Ubuntu.
+tailscale_remove_wireguard: true
+
 # Per-domain split-DNS resolver entries to install on macOS clients via
 # /etc/resolver/<zone>. Open-source `tailscaled` on macOS (Homebrew) does
 # not install split-DNS routes into scutil, so apps using the system

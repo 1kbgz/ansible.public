@@ -18,11 +18,16 @@
         dest: /etc/apt/sources.list.d/tailscale.list
         mode: '0644'
 
+    # python-apt treats warnings from unrelated third-party repositories as
+    # fatal even when apt-get successfully refreshes the usable indexes.
+    - name: Refresh apt package indexes  # noqa command-instead-of-module
+      ansible.builtin.command: apt-get update
+      changed_when: false
+
     - name: Install Tailscale
       ansible.builtin.apt:
         name: tailscale
         state: present
-        update_cache: true
 
     - name: Enable + start tailscaled
       ansible.builtin.systemd:
@@ -46,11 +51,15 @@
       register: _tailscaled_bin
       changed_when: false
 
+    - name: Check for tailscaled system daemon
+      ansible.builtin.stat:
+        path: /Library/LaunchDaemons/com.tailscale.tailscaled.plist
+      register: _tailscaled_daemon
+
     - name: Install tailscaled as a system daemon (launchd)
       become: true
       ansible.builtin.command: "{{ _tailscaled_bin.stdout | trim }} install-system-daemon"
-      args:
-        creates: /Library/LaunchDaemons/com.tailscale.tailscaled.plist
+      when: not _tailscaled_daemon.stat.exists
 
     # Open-source tailscaled on macOS doesn't install split-DNS routes into
     # scutil; system-resolver clients (`host`, curl, browsers) ignore the
@@ -77,7 +86,9 @@
       changed_when: false
 
 - name: Tear down legacy WireGuard (best effort, no-op if not present)
-  when: ansible_facts['os_family'] == 'Debian'
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - tailscale_remove_wireguard | bool
   become: true
   block:
     - name: Stop wg-quick@wg0
@@ -115,7 +126,7 @@
   register: _ts_status
   changed_when: false
   failed_when: false
-  become: true
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
 
 - name: Parse current Tailscale status
   ansible.builtin.set_fact:
@@ -124,20 +135,43 @@
     - _ts_status.rc == 0
     - _ts_status.stdout | length > 0
 
-- name: Join tailnet (tailscale up)
-  ansible.builtin.command: >-
-    tailscale up
-    {{ ('--login-server=' ~ headscale_login_server) if (headscale_login_server | length > 0) else '' }}
-    --auth-key={{ tailscale_auth_key }}
-    --hostname={{ tailscale_hostname | default(inventory_hostname_short | default(inventory_hostname)) }}
-    {{ tailscale_extra_args }}
-  become: true
+- name: Join tailnet
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
   when:
     - tailscale_join | bool
     - tailscale_auth_key is defined
     - tailscale_auth_key | length > 0
-  changed_when: true
-  no_log: true
+  block:
+    - name: Create temporary Tailscale auth key file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .tailscale-auth
+      register: _tailscale_auth_file
+
+    - name: Write Tailscale auth key
+      ansible.builtin.copy:
+        content: "{{ tailscale_auth_key }}"
+        dest: "{{ _tailscale_auth_file.path }}"
+        mode: '0600'
+      no_log: true
+
+    - name: Activate tailnet
+      ansible.builtin.command: >-
+        tailscale up
+        {{ ('--login-server=' ~ headscale_login_server) if (headscale_login_server | length > 0) else '' }}
+        --auth-key=file:{{ _tailscale_auth_file.path }}
+        --hostname={{ tailscale_hostname | default(inventory_hostname_short | default(inventory_hostname)) }}
+        {{ tailscale_extra_args }}
+      changed_when: true
+      no_log: true
+  always:
+    - name: Remove temporary Tailscale auth key file
+      ansible.builtin.file:
+        path: "{{ _tailscale_auth_file.path }}"
+        state: absent
+      when:
+        - _tailscale_auth_file is defined
+        - _tailscale_auth_file.path is defined
 
 - name: Refresh Tailscale DNS and route preferences on joined nodes
   ansible.builtin.shell: |
@@ -146,8 +180,9 @@
     tailscale set \
       --accept-routes={{ 'true' if ('--accept-routes' in tailscale_extra_args) else 'false' }} \
       --accept-dns={{ 'true' if ('--accept-dns' in tailscale_extra_args) else 'false' }}
-  become: true
+  become: "{{ ansible_facts['os_family'] != 'Darwin' }}"
   when:
+    - tailscale_join | bool
     - _ts_status_json is defined
     - _ts_status_json.BackendState | default('') == 'Running'
   changed_when: false
