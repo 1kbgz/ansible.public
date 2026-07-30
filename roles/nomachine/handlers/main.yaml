@@ -4,3 +4,9 @@
     name: firewalld
     state: restarted
     enabled: true
+
+- name: Restart NoMachine
+  ansible.builtin.systemd:
+    name: nxserver
+    state: restarted
+    enabled: true

@@ -25,6 +25,22 @@
   retries: 60
   delay: 5
 
+- name: Use the multi-user boot target on headless hosts
+  ansible.builtin.file:
+    src: /lib/systemd/system/multi-user.target
+    dest: /etc/systemd/system/default.target
+    state: link
+    force: true
+  when: nomachine_headless | bool
+  notify: Restart NoMachine
+
+- name: Stop the display manager on headless hosts
+  ansible.builtin.systemd:
+    name: display-manager
+    state: stopped
+  when: nomachine_headless | bool
+  notify: Restart NoMachine
+
 - name: Allow NoMachine through firewalld
   ansible.posix.firewalld:
     port: "4000/{{ item }}"
@@ -33,6 +49,13 @@
   loop:
     - tcp
     - udp
+  notify: Restart firewalld
+
+- name: Allow NoMachine LAN discovery through firewalld
+  ansible.posix.firewalld:
+    service: mdns
+    permanent: true
+    state: enabled
   notify: Restart firewalld
 
 - name: Enable and start NoMachine

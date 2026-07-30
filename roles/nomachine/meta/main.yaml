@@ -1,7 +1,4 @@
 ---
-dependencies:
-  - role: base
-
 galaxy_info:
   role_name: nomachine
   author: 1kbgz

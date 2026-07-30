@@ -1,6 +1,7 @@
 ---
 nomachine_release: "9.8"
 nomachine_version: "9.8.2_1"
+nomachine_headless: false
 
 nomachine_packages:
   x86_64:
