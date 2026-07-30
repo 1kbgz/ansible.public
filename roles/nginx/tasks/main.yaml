@@ -1,4 +1,10 @@
 ---
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  become: true
+
 - name: Run fs operations
   ansible.builtin.include_tasks: fs.yaml
 

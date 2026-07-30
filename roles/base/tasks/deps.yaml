@@ -148,7 +148,7 @@
 
 - name: Add LLVM apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [signed-by=/usr/share/keyrings/llvm-snapshot.gpg] http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-20 main'
+    repo: 'deb [signed-by=/usr/share/keyrings/llvm-snapshot.gpg] http://apt.llvm.org/{{ ansible_facts["distribution_release"] }}/ llvm-toolchain-{{ ansible_facts["distribution_release"] }}-20 main'
     state: present
     filename: llvm
     update_cache: true
@@ -172,7 +172,7 @@
 
 - name: Add apache arrow apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/apache-arrow-apt-source.gpg] https://apache.jfrog.io/artifactory/arrow/ubuntu/ {{ ansible_distribution_release }} main'
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/apache-arrow-apt-source.gpg] https://apache.jfrog.io/artifactory/arrow/ubuntu/ {{ ansible_facts["distribution_release"] }} main'
     state: present
     filename: apache-arrow
     update_cache: true
@@ -196,7 +196,7 @@
 
 - name: Add newrelic apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/newrelic-infra.gpg] https://download.newrelic.com/infrastructure_agent/linux/apt {{ ansible_distribution_release }} main'
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/newrelic-infra.gpg] https://download.newrelic.com/infrastructure_agent/linux/apt {{ ansible_facts["distribution_release"] }} main'
     state: present
     filename: newrelic-infra
     update_cache: true
@@ -220,7 +220,7 @@
 
 - name: Add postgresql apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main'
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_facts["distribution_release"] }}-pgdg main'
     state: present
     filename: postgresql
     update_cache: true
