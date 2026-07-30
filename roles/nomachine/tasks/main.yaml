@@ -1,0 +1,42 @@
+---
+- name: Validate NoMachine architecture
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['architecture'] in nomachine_packages
+    fail_msg: "NoMachine does not have a configured package for {{ ansible_facts['architecture'] }}"
+
+- name: Select NoMachine package
+  ansible.builtin.set_fact:
+    _nomachine_package: "{{ nomachine_packages[ansible_facts['architecture']] }}"
+
+- name: Download NoMachine {{ nomachine_version }}
+  ansible.builtin.get_url:
+    url: "https://download.nomachine.com/download/{{ nomachine_release }}/{{ _nomachine_package.directory }}/nomachine_{{ nomachine_version }}_{{ _nomachine_package.architecture }}.deb"
+    dest: "/tmp/nomachine_{{ nomachine_version }}_{{ _nomachine_package.architecture }}.deb"
+    checksum: "{{ _nomachine_package.checksum }}"
+    mode: "0644"
+
+- name: Install NoMachine {{ nomachine_version }}
+  ansible.builtin.apt:
+    deb: "/tmp/nomachine_{{ nomachine_version }}_{{ _nomachine_package.architecture }}.deb"
+    lock_timeout: 300
+  register: _nomachine_install
+  until: _nomachine_install is succeeded
+  retries: 60
+  delay: 5
+
+- name: Allow NoMachine through firewalld
+  ansible.posix.firewalld:
+    port: "4000/{{ item }}"
+    permanent: true
+    state: enabled
+  loop:
+    - tcp
+    - udp
+  notify: Restart firewalld
+
+- name: Enable and start NoMachine
+  ansible.builtin.systemd:
+    name: nxserver
+    enabled: true
+    state: started

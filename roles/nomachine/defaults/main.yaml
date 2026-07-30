@@ -1,0 +1,29 @@
+---
+nomachine_release: "9.8"
+nomachine_version: "9.8.2_1"
+
+nomachine_packages:
+  x86_64:
+    directory: Linux
+    architecture: amd64
+    checksum: "md5:29f24af614a1cd3da4e69c407fe31b2a"
+  amd64:
+    directory: Linux
+    architecture: amd64
+    checksum: "md5:29f24af614a1cd3da4e69c407fe31b2a"
+  aarch64:
+    directory: Arm
+    architecture: arm64
+    checksum: "md5:a37b55297944b941d00973dd83b669fd"
+  arm64:
+    directory: Arm
+    architecture: arm64
+    checksum: "md5:a37b55297944b941d00973dd83b669fd"
+  armv7l:
+    directory: Arm
+    architecture: armhf
+    checksum: "md5:de52e39532d031d920c4b31377d1bc3c"
+  armhf:
+    directory: Arm
+    architecture: armhf
+    checksum: "md5:de52e39532d031d920c4b31377d1bc3c"
