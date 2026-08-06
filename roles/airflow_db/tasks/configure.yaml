@@ -42,6 +42,15 @@
   when: POSTGRES_LOCATION == 'internal'
   register: pg_listen_changed
 
+- name: Open Airflow Postgres port in firewall
+  ansible.posix.firewalld:
+    port: "{{ AIRFLOW_POSTGRES_PORT }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  become: true
+  when: POSTGRES_LOCATION == 'internal'
+
 - name: Configure max connections
   ansible.builtin.lineinfile:
     path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
