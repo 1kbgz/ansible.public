@@ -1,0 +1,68 @@
+---
+- name: Validate Python library configuration
+  ansible.builtin.assert:
+    that:
+      - PYTHON_LIBRARIES_VIRTUALENV | length > 0
+      - PYTHON_LIBRARIES_USER | length > 0
+    fail_msg: PYTHON_LIBRARIES_VIRTUALENV and PYTHON_LIBRARIES_USER are required
+
+- name: Check Python virtualenv
+  ansible.builtin.stat:
+    path: "{{ PYTHON_LIBRARIES_VIRTUALENV }}/bin/python"
+  register: python_libraries_virtualenv_python
+
+- name: Require existing Python virtualenv
+  ansible.builtin.assert:
+    that:
+      - python_libraries_virtualenv_python.stat.executable | default(false)
+    fail_msg: "Python virtualenv does not exist at {{ PYTHON_LIBRARIES_VIRTUALENV }}"
+
+- name: Install Python packages
+  ansible.builtin.pip:
+    name: "{{ PYTHON_LIBRARIES_PACKAGES }}"
+    executable: "{{ PYTHON_LIBRARIES_VIRTUALENV }}/bin/pip"
+    state: present
+  become: true
+  become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  when: PYTHON_LIBRARIES_PACKAGES | length > 0
+  notify: Restart services after Python library changes
+
+- name: Install Python packages without dependencies
+  ansible.builtin.pip:
+    name: "{{ PYTHON_LIBRARIES_PACKAGES_NO_DEPS }}"
+    executable: "{{ PYTHON_LIBRARIES_VIRTUALENV }}/bin/pip"
+    extra_args: --no-deps
+    state: present
+  become: true
+  become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  when: PYTHON_LIBRARIES_PACKAGES_NO_DEPS | length > 0
+  notify: Restart services after Python library changes
+
+- name: Install editable Python libraries
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    executable: "{{ PYTHON_LIBRARIES_VIRTUALENV }}/bin/pip"
+    editable: true
+    extra_args: --no-deps
+    state: present
+  loop: "{{ PYTHON_LIBRARIES_EDITABLE_PATHS }}"
+  become: true
+  become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  notify: Restart services after Python library changes
+
+- name: Validate Python library imports
+  ansible.builtin.command:
+    argv:
+      - "{{ PYTHON_LIBRARIES_VIRTUALENV }}/bin/python"
+      - -c
+      - "import importlib; [importlib.import_module(name) for name in {{ PYTHON_LIBRARIES_IMPORTS | to_json }}]"
+  become: true
+  become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  changed_when: false
+  when: PYTHON_LIBRARIES_IMPORTS | length > 0
+
+- name: Restart services after source changes
+  ansible.builtin.debug:
+    msg: Shared Python library sources changed
+  changed_when: PYTHON_LIBRARIES_SOURCE_CHANGED | bool
+  notify: Restart services after Python library changes

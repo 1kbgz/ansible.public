@@ -1,0 +1,7 @@
+---
+- name: Restart services after Python library changes
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop: "{{ PYTHON_LIBRARIES_RESTART_SERVICES }}"
+  become: true
