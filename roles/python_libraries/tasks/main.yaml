@@ -24,6 +24,7 @@
     state: present
   become: true
   become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  environment: "{{ PYTHON_LIBRARIES_ENVIRONMENT }}"
   when: PYTHON_LIBRARIES_PACKAGES | length > 0
   notify: Restart services after Python library changes
 
@@ -35,6 +36,7 @@
     state: present
   become: true
   become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  environment: "{{ PYTHON_LIBRARIES_ENVIRONMENT }}"
   when: PYTHON_LIBRARIES_PACKAGES_NO_DEPS | length > 0
   notify: Restart services after Python library changes
 
@@ -48,6 +50,7 @@
   loop: "{{ PYTHON_LIBRARIES_EDITABLE_PATHS }}"
   become: true
   become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  environment: "{{ PYTHON_LIBRARIES_ENVIRONMENT }}"
   notify: Restart services after Python library changes
 
 - name: Validate Python library imports
