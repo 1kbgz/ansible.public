@@ -31,6 +31,9 @@
     - Restart celery worker
   become: true
 
+- name: Flush handlers before starting celery worker
+  ansible.builtin.meta: flush_handlers
+
 - name: Restart celery worker after upgrade
   ansible.builtin.systemd:
     name: airflow-celery-worker
