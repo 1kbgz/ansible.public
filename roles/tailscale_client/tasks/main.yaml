@@ -27,7 +27,7 @@
     - name: Install Tailscale
       ansible.builtin.apt:
         name: tailscale
-        state: present
+        state: "{{ tailscale_package_state }}"
 
     - name: Enable + start tailscaled
       ansible.builtin.systemd:
@@ -41,7 +41,7 @@
     - name: Install Tailscale via Homebrew
       community.general.homebrew:
         name: tailscale
-        state: present
+        state: "{{ tailscale_package_state }}"
 
     - name: Resolve real tailscaled path (homebrew Cellar)
       ansible.builtin.shell: |

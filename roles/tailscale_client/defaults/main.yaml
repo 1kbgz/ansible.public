@@ -14,6 +14,9 @@ headscale_login_server: ""
 #   "--accept-routes --ssh"
 tailscale_extra_args: "--accept-routes --accept-dns"
 
+# Use `latest` where profile switching requires a current Tailscale CLI.
+tailscale_package_state: present
+
 # Whether to call `tailscale up` after install. Set to false on first run
 # if you want to install the package only and authenticate manually.
 tailscale_join: true
