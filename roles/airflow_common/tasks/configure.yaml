@@ -2,7 +2,7 @@
 - name: Copy airflow config file into place
   ansible.builtin.copy:
     dest: /var/lib/airflow/airflow.cfg
-    mode: '0755'
+    mode: '0600'
     owner: airflow
     group: services
     content: "{{ lookup('ansible.builtin.template', '../config/airflow' + AIRFLOW_MAJOR_VERSION + '.cfg') }}"
