@@ -70,18 +70,23 @@
       {% for cidr in pg_hba_extra_cidrs %}
       host all all {{ cidr }} md5
       {% endfor %}
+      {% for cidr in pg_hba_trusted_cidrs %}
+      host all all {{ cidr }} trust
+      {% endfor %}
   become: true
   become_user: postgres
+  notify:
+    - Restart airflow db
 
-- name: Configure postgres access for internal deployments
+- name: Remove legacy unrestricted postgres access
   ansible.builtin.blockinfile:
     path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/pg_hba.conf
     marker: "# {mark} ANSIBLE MANAGED BLOCK - INTERNAL DB"
-    block: |
-      host all all 0.0.0.0/0 trust
+    state: absent
   become: true
   become_user: postgres
-  when: POSTGRES_LOCATION == 'internal'
+  notify:
+    - Restart airflow db
 
 - name: Start airflow db for initialization
   ansible.builtin.shell: |

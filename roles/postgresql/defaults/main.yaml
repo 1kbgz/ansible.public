@@ -6,3 +6,6 @@ POSTGRES_LOCATION: internal
 # Extra CIDRs to allow md5 access to all dbs/users in pg_hba.conf,
 # in addition to 127.0.0.1/32. Default is empty (loopback only).
 pg_hba_extra_cidrs: []
+
+# Extra CIDRs to allow passwordless access. Default is empty.
+pg_hba_trusted_cidrs: []
