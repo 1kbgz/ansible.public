@@ -1,0 +1,64 @@
+---
+- name: Require macOS
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'Darwin'
+    fail_msg: The launchd_jobs role supports macOS only
+
+- name: Create LaunchAgents directory
+  ansible.builtin.file:
+    path: "{{ launchd_jobs_directory }}"
+    state: directory
+    mode: '0755'
+
+- name: Install launchd job definitions
+  ansible.builtin.template:
+    src: job.plist.j2
+    dest: "{{ launchd_jobs_directory }}/{{ item.label }}.plist"
+    mode: '0644'
+  loop: "{{ launchd_jobs }}"
+  register: launchd_job_definitions
+
+- name: Unload changed launchd jobs
+  ansible.builtin.command:
+    argv:
+      - /bin/launchctl
+      - bootout
+      - "gui/{{ ansible_facts['user_uid'] }}/{{ item.item.label }}"
+  loop: "{{ launchd_job_definitions.results }}"
+  when: item.changed  # noqa no-handler
+  changed_when: false
+  failed_when: false
+
+- name: Load changed launchd jobs
+  ansible.builtin.command:
+    argv:
+      - /bin/launchctl
+      - bootstrap
+      - "gui/{{ ansible_facts['user_uid'] }}"
+      - "{{ launchd_jobs_directory }}/{{ item.item.label }}.plist"
+  loop: "{{ launchd_job_definitions.results }}"
+  when: item.changed  # noqa no-handler
+  changed_when: true
+
+- name: Check launchd job state
+  ansible.builtin.command:
+    argv:
+      - /bin/launchctl
+      - print
+      - "gui/{{ ansible_facts['user_uid'] }}/{{ item.label }}"
+  loop: "{{ launchd_jobs }}"
+  register: launchd_job_states
+  changed_when: false
+  failed_when: false
+
+- name: Load missing launchd jobs
+  ansible.builtin.command:
+    argv:
+      - /bin/launchctl
+      - bootstrap
+      - "gui/{{ ansible_facts['user_uid'] }}"
+      - "{{ launchd_jobs_directory }}/{{ item.item.label }}.plist"
+  loop: "{{ launchd_job_states.results }}"
+  when: item.rc != 0
+  changed_when: true

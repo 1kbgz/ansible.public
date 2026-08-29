@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>{{ item.label | e }}</string>
+  <key>ProgramArguments</key>
+  <array>
+{% for argument in item.program_arguments %}
+    <string>{{ argument | e }}</string>
+{% endfor %}
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+{% for key, value in item.start_calendar_interval.items() %}
+    <key>{{ key | e }}</key>
+    <integer>{{ value }}</integer>
+{% endfor %}
+  </dict>
+  <key>StandardOutPath</key>
+  <string>{{ item.standard_out_path | e }}</string>
+  <key>StandardErrorPath</key>
+  <string>{{ item.standard_error_path | e }}</string>
+</dict>
+</plist>

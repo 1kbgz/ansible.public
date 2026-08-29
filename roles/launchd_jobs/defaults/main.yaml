@@ -1,0 +1,3 @@
+---
+launchd_jobs: []
+launchd_jobs_directory: "{{ ansible_facts['env']['HOME'] }}/Library/LaunchAgents"
