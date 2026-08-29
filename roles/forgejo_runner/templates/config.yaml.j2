@@ -1,0 +1,30 @@
+log:
+  level: info
+  job_level: info
+
+runner:
+  capacity: {{ FORGEJO_RUNNER_CAPACITY }}
+  timeout: {{ FORGEJO_RUNNER_TIMEOUT }}
+  shutdown_timeout: {{ FORGEJO_RUNNER_SHUTDOWN_TIMEOUT }}
+  labels:
+{% for label in FORGEJO_RUNNER_LABELS %}
+    - {{ label | to_json }}
+{% endfor %}
+
+cache:
+  enabled: false
+
+container:
+  privileged: false
+  options: {{ FORGEJO_RUNNER_CONTAINER_OPTIONS | to_json }}
+  valid_volumes: []
+  docker_host: "-"
+  force_pull: false
+  force_rebuild: false
+
+server:
+  connections:
+    forgejo:
+      url: {{ FORGEJO_RUNNER_URL | to_json }}
+      uuid: {{ FORGEJO_RUNNER_UUID | to_json }}
+      token_url: "file:$CREDENTIALS_DIRECTORY/token"

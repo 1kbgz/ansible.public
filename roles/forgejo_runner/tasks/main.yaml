@@ -1,0 +1,170 @@
+---
+- name: Resolve Forgejo Runner architecture
+  ansible.builtin.set_fact:
+    _forgejo_runner_arch: >-
+      {{ FORGEJO_RUNNER_ARCHITECTURES[ansible_facts['architecture']] | default('') }}
+
+- name: Validate Forgejo Runner configuration
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'Debian'
+      - _forgejo_runner_arch | length > 0
+      - FORGEJO_RUNNER_URL | length > 0
+      - FORGEJO_RUNNER_UUID is match('^[0-9a-f-]{36}$')
+      - FORGEJO_RUNNER_TOKEN is match('^[0-9a-f]{40}$')
+      - FORGEJO_RUNNER_LABELS | length > 0
+      - FORGEJO_RUNNER_CAPACITY | int == 1
+      - FORGEJO_RUNNER_CONTAINER_OPTIONS | length > 0
+    quiet: true
+  no_log: true
+
+- name: Install Forgejo Runner dependencies
+  ansible.builtin.apt:
+    name:
+      - dbus-user-session
+      - fuse-overlayfs
+      - git
+      - podman
+      - slirp4netns
+      - uidmap
+    state: present
+  become: true
+
+- name: Create Forgejo Runner user
+  ansible.builtin.user:
+    name: "{{ FORGEJO_RUNNER_USER }}"
+    create_home: true
+    home: "/home/{{ FORGEJO_RUNNER_USER }}"
+    shell: /bin/bash
+  become: true
+
+- name: Read Forgejo Runner user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ FORGEJO_RUNNER_USER }}"
+
+- name: Record Forgejo Runner user ID
+  ansible.builtin.set_fact:
+    _forgejo_runner_uid: "{{ ansible_facts.getent_passwd[FORGEJO_RUNNER_USER][1] }}"
+
+- name: Check Forgejo Runner subordinate ID mappings
+  ansible.builtin.command:
+    argv:
+      - grep
+      - --extended-regexp
+      - "^{{ FORGEJO_RUNNER_USER }}:[0-9]+:[0-9]+$"
+      - "{{ item }}"
+  loop:
+    - /etc/subuid
+    - /etc/subgid
+  register: _forgejo_runner_subids
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Validate Forgejo Runner subordinate ID mappings
+  ansible.builtin.assert:
+    that:
+      - _forgejo_runner_subids.results | selectattr('rc', 'equalto', 0) | list | length == 2
+    quiet: true
+    fail_msg: >-
+      {{ FORGEJO_RUNNER_USER }} requires subordinate UID and GID ranges for
+      rootless Podman
+
+- name: Create Forgejo Runner directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - path: /etc/forgejo-runner
+      owner: root
+      group: root
+      mode: '0755'
+    - path: /var/lib/forgejo-runner
+      owner: "{{ FORGEJO_RUNNER_USER }}"
+      group: "{{ FORGEJO_RUNNER_USER }}"
+      mode: '0750'
+  become: true
+
+- name: Install Forgejo Runner binary
+  ansible.builtin.get_url:
+    url: >-
+      https://code.forgejo.org/forgejo/runner/releases/download/v{{ FORGEJO_RUNNER_VERSION }}/forgejo-runner-{{ FORGEJO_RUNNER_VERSION }}-linux-{{ _forgejo_runner_arch }}
+    dest: /usr/local/bin/forgejo-runner
+    owner: root
+    group: root
+    mode: '0755'
+    checksum: "sha256:{{ FORGEJO_RUNNER_CHECKSUMS[_forgejo_runner_arch] }}"
+  become: true
+  notify: Restart forgejo runner
+
+- name: Install Forgejo Runner token
+  ansible.builtin.copy:
+    dest: /etc/forgejo-runner/token
+    content: "{{ FORGEJO_RUNNER_TOKEN }}"
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+  no_log: true
+  notify: Restart forgejo runner
+
+- name: Install Forgejo Runner configuration
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/forgejo-runner/config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart forgejo runner
+
+- name: Check Forgejo Runner lingering
+  ansible.builtin.stat:
+    path: "/var/lib/systemd/linger/{{ FORGEJO_RUNNER_USER }}"
+  register: _forgejo_runner_linger
+
+- name: Enable Forgejo Runner lingering
+  ansible.builtin.command:
+    argv:
+      - loginctl
+      - enable-linger
+      - "{{ FORGEJO_RUNNER_USER }}"
+  when: not _forgejo_runner_linger.stat.exists
+  become: true
+
+- name: Set rootless Podman socket state
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - --user
+      - "--machine={{ FORGEJO_RUNNER_USER }}@"
+      - "{{ 'enable' if FORGEJO_RUNNER_ENABLED | bool else 'disable' }}"
+      - --now
+      - podman.socket
+  changed_when: false
+  become: true
+
+- name: Install Forgejo Runner service
+  ansible.builtin.template:
+    src: forgejo-runner.service.j2
+    dest: /etc/systemd/system/forgejo-runner.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart forgejo runner
+
+- name: Flush Forgejo Runner handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Set Forgejo Runner service state
+  ansible.builtin.systemd:
+    name: forgejo-runner
+    state: "{{ 'started' if FORGEJO_RUNNER_ENABLED | bool else 'stopped' }}"
+    enabled: "{{ FORGEJO_RUNNER_ENABLED | bool }}"
+    daemon_reload: true
+  become: true

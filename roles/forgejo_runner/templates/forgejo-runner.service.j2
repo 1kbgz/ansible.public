@@ -1,0 +1,33 @@
+[Unit]
+Description=Forgejo Actions Runner
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ FORGEJO_RUNNER_USER }}
+Group={{ FORGEJO_RUNNER_USER }}
+WorkingDirectory=/var/lib/forgejo-runner
+Environment=XDG_RUNTIME_DIR=/run/user/{{ _forgejo_runner_uid }}
+Environment=DOCKER_HOST=unix:///run/user/{{ _forgejo_runner_uid }}/podman/podman.sock
+LoadCredential=token:/etc/forgejo-runner/token
+ExecStartPre=/usr/bin/test -S /run/user/{{ _forgejo_runner_uid }}/podman/podman.sock
+ExecStart=/usr/local/bin/forgejo-runner daemon --config /etc/forgejo-runner/config.yaml
+Restart=on-failure
+RestartSec=5s
+MemoryMax={{ FORGEJO_RUNNER_MEMORY_MAX }}
+CPUWeight={{ FORGEJO_RUNNER_CPU_WEIGHT }}
+IOWeight={{ FORGEJO_RUNNER_IO_WEIGHT }}
+OOMScoreAdjust={{ FORGEJO_RUNNER_OOM_SCORE_ADJUST }}
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadWritePaths=/home/{{ FORGEJO_RUNNER_USER }} /var/lib/forgejo-runner
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
