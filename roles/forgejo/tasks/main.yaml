@@ -1,0 +1,164 @@
+---
+- name: Validate Forgejo configuration
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['architecture'] == 'x86_64'
+      - FORGEJO_SECRET_KEY | length > 0
+      - FORGEJO_INTERNAL_TOKEN | length > 0
+      - FORGEJO_LFS_JWT_SECRET | length > 0
+      - FORGEJO_OAUTH2_JWT_SECRET | length > 0
+      - FORGEJO_ADMIN_USERNAME | length > 0
+      - FORGEJO_ADMIN_PASSWORD | length > 0
+      - FORGEJO_ADMIN_EMAIL | length > 0
+    quiet: true
+  no_log: true
+
+- name: Install Forgejo dependencies
+  ansible.builtin.apt:
+    name:
+      - git
+      - git-lfs
+    state: present
+  become: true
+
+- name: Create Forgejo user
+  ansible.builtin.user:
+    name: git
+    system: true
+    create_home: true
+    home: /home/git
+    shell: /bin/bash
+    comment: Git Version Control
+  become: true
+
+- name: Create Forgejo directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: git
+    mode: "{{ item.mode }}"
+  loop:
+    - path: /var/lib/forgejo
+      owner: git
+      mode: '0750'
+    - path: /var/lib/forgejo/data
+      owner: git
+      mode: '0750'
+    - path: /var/lib/forgejo/data/repositories
+      owner: git
+      mode: '0750'
+    - path: /etc/forgejo
+      owner: root
+      mode: '0750'
+  become: true
+
+- name: Install Forgejo binary
+  ansible.builtin.get_url:
+    url: "https://code.forgejo.org/forgejo/forgejo/releases/download/v{{ FORGEJO_VERSION }}/forgejo-{{ FORGEJO_VERSION }}-linux-amd64"
+    dest: /usr/local/bin/forgejo
+    owner: root
+    group: root
+    mode: '0755'
+    checksum: "sha256:{{ FORGEJO_SHA256 }}"
+  become: true
+  notify: Restart forgejo
+
+- name: Install Forgejo secrets
+  ansible.builtin.copy:
+    dest: "/etc/forgejo/{{ item.name }}"
+    content: "{{ item.value }}\n"
+    owner: root
+    group: git
+    mode: '0640'
+  loop:
+    - name: secret_key
+      value: "{{ FORGEJO_SECRET_KEY }}"
+    - name: internal_token
+      value: "{{ FORGEJO_INTERNAL_TOKEN }}"
+    - name: lfs_jwt_secret
+      value: "{{ FORGEJO_LFS_JWT_SECRET }}"
+    - name: oauth2_jwt_secret
+      value: "{{ FORGEJO_OAUTH2_JWT_SECRET }}"
+  become: true
+  no_log: true
+  notify: Restart forgejo
+
+- name: Install Forgejo configuration
+  ansible.builtin.template:
+    src: app.ini.j2
+    dest: /etc/forgejo/app.ini
+    owner: root
+    group: git
+    mode: '0640'
+  become: true
+  notify: Restart forgejo
+
+- name: Install Forgejo service
+  ansible.builtin.template:
+    src: forgejo.service.j2
+    dest: /etc/systemd/system/forgejo.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: Restart forgejo
+
+- name: Flush Forgejo handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Start Forgejo
+  ansible.builtin.systemd:
+    name: forgejo
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+
+- name: Wait for Forgejo
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ FORGEJO_HTTP_PORT }}"
+    timeout: 60
+
+- name: List Forgejo administrators
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/forgejo
+      - --work-path
+      - /var/lib/forgejo
+      - --config
+      - /etc/forgejo/app.ini
+      - admin
+      - user
+      - list
+      - --admin
+  become: true
+  become_user: git
+  register: forgejo_administrators
+  changed_when: false
+  no_log: true
+
+- name: Create Forgejo administrator
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/forgejo
+      - --work-path
+      - /var/lib/forgejo
+      - --config
+      - /etc/forgejo/app.ini
+      - admin
+      - user
+      - create
+      - --username
+      - "{{ FORGEJO_ADMIN_USERNAME }}"
+      - --password
+      - "{{ FORGEJO_ADMIN_PASSWORD }}"
+      - --email
+      - "{{ FORGEJO_ADMIN_EMAIL }}"
+      - --admin
+      - --must-change-password=false
+  become: true
+  become_user: git
+  when: FORGEJO_ADMIN_USERNAME not in forgejo_administrators.stdout
+  no_log: true

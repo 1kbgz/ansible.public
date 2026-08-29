@@ -1,0 +1,17 @@
+[Unit]
+Description=Forgejo
+After=network.target
+
+[Service]
+Type=simple
+User=git
+Group=git
+WorkingDirectory=/var/lib/forgejo
+Environment=USER=git HOME=/home/git FORGEJO_WORK_DIR=/var/lib/forgejo
+ExecStart=/usr/local/bin/forgejo web --config /etc/forgejo/app.ini
+Restart=always
+RestartSec=2s
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

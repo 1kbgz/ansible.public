@@ -1,0 +1,40 @@
+APP_NAME = {{ FORGEJO_APP_NAME }}
+RUN_USER = git
+RUN_MODE = prod
+WORK_PATH = /var/lib/forgejo
+
+[database]
+DB_TYPE = sqlite3
+PATH = /var/lib/forgejo/data/forgejo.db
+
+[repository]
+ROOT = /var/lib/forgejo/data/repositories
+
+[server]
+DOMAIN = {{ FORGEJO_DOMAIN }}
+HTTP_ADDR = {{ FORGEJO_HTTP_ADDR }}
+HTTP_PORT = {{ FORGEJO_HTTP_PORT }}
+ROOT_URL = {{ FORGEJO_ROOT_URL }}
+DISABLE_SSH = true
+LFS_START_SERVER = true
+LFS_JWT_SECRET_URI = file:/etc/forgejo/lfs_jwt_secret
+
+[service]
+DISABLE_REGISTRATION = true
+REQUIRE_SIGNIN_VIEW = true
+
+[security]
+INSTALL_LOCK = true
+SECRET_KEY_URI = file:/etc/forgejo/secret_key
+INTERNAL_TOKEN_URI = file:/etc/forgejo/internal_token
+PASSWORD_HASH_ALGO = argon2
+
+[oauth2]
+JWT_SECRET_URI = file:/etc/forgejo/oauth2_jwt_secret
+
+[actions]
+ENABLED = true
+
+[log]
+MODE = console
+LEVEL = info
