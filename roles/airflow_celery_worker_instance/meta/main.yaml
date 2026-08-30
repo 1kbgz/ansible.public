@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: airflow_celery_worker_instance
+  author: 1kbgz
+  description: Run a named Airflow Celery worker instance
+  license: AGPL-3.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: [all]
+    - name: Debian
+      versions: [all]
+  galaxy_tags:
+    - development
+    - airflow

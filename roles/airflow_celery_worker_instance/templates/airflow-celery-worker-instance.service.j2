@@ -1,0 +1,22 @@
+[Unit]
+Description=Airflow Celery Worker, {{ CELERY_WORKER_INSTANCE_NAME }}
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=/var/lib/airflow /home/airflow
+
+[Service]
+User=airflow
+Environment=AIRFLOW_HOME=/var/lib/airflow
+Type=simple
+Slice={{ CELERY_WORKER_INSTANCE_SLICE }}
+ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues {{ CELERY_WORKER_INSTANCE_QUEUES }} --celery-hostname {{ CELERY_WORKER_INSTANCE_NAME }}@{{ inventory_hostname }} --pid /var/lib/airflow/celery/{{ inventory_hostname }}-{{ CELERY_WORKER_INSTANCE_NAME }}.pid --concurrency {{ CELERY_WORKER_INSTANCE_CONCURRENCY }} --skip-serve-logs
+Restart=on-failure
+RestartSec=5s
+PrivateTmp=true
+CPUWeight={{ CELERY_WORKER_INSTANCE_CPU_WEIGHT }}
+IOWeight={{ CELERY_WORKER_INSTANCE_IO_WEIGHT }}
+TasksMax={{ CELERY_WORKER_INSTANCE_TASKS_MAX }}
+OOMScoreAdjust={{ CELERY_WORKER_INSTANCE_OOM_SCORE_ADJUST }}
+
+[Install]
+WantedBy=multi-user.target

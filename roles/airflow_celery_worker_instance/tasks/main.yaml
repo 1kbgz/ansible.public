@@ -1,0 +1,39 @@
+---
+- name: Validate celery worker instance configuration
+  ansible.builtin.assert:
+    that:
+      - CELERY_WORKER_INSTANCE_NAME is match('^[a-zA-Z0-9_.-]+$')
+      - CELERY_WORKER_INSTANCE_QUEUES | length > 0
+      - CELERY_WORKER_INSTANCE_CONCURRENCY | int > 0
+    quiet: true
+
+- name: Install celery worker instance service
+  ansible.builtin.template:
+    src: airflow-celery-worker-instance.service.j2
+    dest: "/etc/systemd/system/airflow-celery-worker-{{ CELERY_WORKER_INSTANCE_NAME }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify:
+    - Reload celery worker instance units
+    - Restart celery worker instance
+
+- name: Validate celery worker instance service
+  ansible.builtin.command:
+    argv:
+      - systemd-analyze
+      - verify
+      - "/etc/systemd/system/airflow-celery-worker-{{ CELERY_WORKER_INSTANCE_NAME }}.service"
+  changed_when: false
+  become: true
+
+- name: Flush celery worker instance handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure celery worker instance is started and enabled
+  ansible.builtin.systemd:
+    name: "airflow-celery-worker-{{ CELERY_WORKER_INSTANCE_NAME }}"
+    state: started
+    enabled: true
+  become: true

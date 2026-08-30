@@ -16,6 +16,9 @@
       User=airflow
       Environment=AIRFLOW_HOME=/var/lib/airflow
       Type=simple
+      {% if CELERY_WORKER_SLICE %}
+      Slice={{ CELERY_WORKER_SLICE }}
+      {% endif %}
       # https://github.com/apache/airflow/issues/59707 — re-enable --celery-hostname when fixed
       # ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues {{CELERY_WORKER_QUEUES}} --celery-hostname {{inventory_hostname}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}
       ExecStart=/var/lib/venvs/airflow/bin/airflow celery worker --queues {{CELERY_WORKER_QUEUES}} --pid /var/lib/airflow/celery/{{inventory_hostname}}.pid --concurrency {{CELERY_WORKER_COUNT*4}}

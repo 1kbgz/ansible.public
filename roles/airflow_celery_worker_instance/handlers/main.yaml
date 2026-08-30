@@ -1,0 +1,12 @@
+---
+- name: Reload celery worker instance units
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
+- name: Restart celery worker instance
+  ansible.builtin.systemd:
+    name: "airflow-celery-worker-{{ CELERY_WORKER_INSTANCE_NAME }}"
+    state: restarted
+    enabled: true
+  become: true
