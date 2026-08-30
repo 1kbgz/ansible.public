@@ -1,4 +1,10 @@
 ---
 - name: Configure airflow celery worker
-  ansible.builtin.include_tasks: configure.yaml
+  ansible.builtin.include_tasks:
+    file: configure.yaml
+    apply:
+      tags:
+        - airflow-worker-service
   when: OS != 'macOS'
+  tags:
+    - airflow-worker-service

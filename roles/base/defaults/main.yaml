@@ -10,3 +10,7 @@ packages:
 # Turn off the systemd-resolved stub listener so a local resolver (e.g. dnsmasq)
 # can bind :53. Opt-in — leave false unless the host runs its own DNS on :53.
 base_disable_resolved_stub: false
+
+# Opt-in managed swapfile size. Zero leaves existing swap configuration alone.
+base_swapfile_path: /swapfile
+base_swapfile_size_mb: 0

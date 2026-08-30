@@ -1,0 +1,58 @@
+---
+- name: Inspect managed swapfile
+  ansible.builtin.stat:
+    path: "{{ base_swapfile_path }}"
+  register: base_swapfile_stat
+
+- name: Read active swap devices
+  ansible.builtin.command: swapon --show=NAME --noheadings
+  register: base_active_swaps
+  changed_when: false
+
+- name: Disable managed swapfile before resizing
+  ansible.builtin.command: "swapoff {{ base_swapfile_path }}"
+  when:
+    - base_swapfile_path in base_active_swaps.stdout_lines
+    - >-
+      not base_swapfile_stat.stat.exists or
+      base_swapfile_stat.stat.size != (base_swapfile_size_mb | int * 1024 * 1024)
+
+- name: Allocate managed swapfile
+  ansible.builtin.command:
+    argv:
+      - fallocate
+      - -l
+      - "{{ base_swapfile_size_mb }}M"
+      - "{{ base_swapfile_path }}"
+  register: base_swapfile_allocate
+  notify: Format managed swapfile
+  when: >-
+    not base_swapfile_stat.stat.exists or
+    base_swapfile_stat.stat.size != (base_swapfile_size_mb | int * 1024 * 1024)
+
+- name: Secure managed swapfile
+  ansible.builtin.file:
+    path: "{{ base_swapfile_path }}"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Format resized managed swapfile before activation
+  ansible.builtin.meta: flush_handlers
+
+- name: Persist managed swapfile
+  ansible.posix.mount:
+    path: none
+    src: "{{ base_swapfile_path }}"
+    fstype: swap
+    opts: sw
+    dump: '0'
+    passno: '0'
+    state: present
+
+- name: Activate managed swapfile
+  ansible.builtin.command: "swapon {{ base_swapfile_path }}"
+  when:
+    - >-
+      base_swapfile_allocate.changed or
+      base_swapfile_path not in base_active_swaps.stdout_lines

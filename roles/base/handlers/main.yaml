@@ -1,4 +1,7 @@
 ---
+- name: Format managed swapfile
+  ansible.builtin.command: "mkswap {{ base_swapfile_path }}"
+
 - name: Restart cron
   ansible.builtin.systemd:
     name: "{{ 'crond' if OS == 'EL' else 'cron' }}"

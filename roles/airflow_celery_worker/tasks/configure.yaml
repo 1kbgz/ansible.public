@@ -23,6 +23,21 @@
       Restart=on-failure
       RestartSec=5s
       PrivateTmp=true
+      {% if CELERY_WORKER_CPU_QUOTA %}
+      CPUQuota={{ CELERY_WORKER_CPU_QUOTA }}
+      {% endif %}
+      CPUWeight={{ CELERY_WORKER_CPU_WEIGHT }}
+      IOWeight={{ CELERY_WORKER_IO_WEIGHT }}
+      MemoryHigh={{ CELERY_WORKER_MEMORY_HIGH }}
+      MemoryMax={{ CELERY_WORKER_MEMORY_MAX }}
+      MemorySwapMax={{ CELERY_WORKER_MEMORY_SWAP_MAX }}
+      TasksMax={{ CELERY_WORKER_TASKS_MAX }}
+      OOMScoreAdjust={{ CELERY_WORKER_OOM_SCORE_ADJUST }}
+      ManagedOOMMemoryPressure={{ CELERY_WORKER_MANAGED_OOM_MEMORY_PRESSURE }}
+      {% if CELERY_WORKER_MANAGED_OOM_MEMORY_PRESSURE_LIMIT %}
+      ManagedOOMMemoryPressureLimit={{ CELERY_WORKER_MANAGED_OOM_MEMORY_PRESSURE_LIMIT }}
+      {% endif %}
+      ManagedOOMSwap={{ CELERY_WORKER_MANAGED_OOM_SWAP }}
 
       [Install]
       WantedBy=multi-user.target

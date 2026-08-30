@@ -14,6 +14,18 @@
 - name: Configure limits
   ansible.builtin.include_tasks: limits.yaml
 
+- name: Configure managed swapfile (opt-in)
+  ansible.builtin.include_tasks:
+    file: swapfile.yaml
+    apply:
+      tags:
+        - swapfile
+  when:
+    - OS != 'macOS'
+    - base_swapfile_size_mb | int > 0
+  tags:
+    - swapfile
+
 - name: Free :53 from the systemd-resolved stub listener (opt-in)
   ansible.builtin.include_tasks: resolved.yaml
   when: base_disable_resolved_stub | default(false) | bool
