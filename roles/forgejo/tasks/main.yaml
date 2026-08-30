@@ -10,6 +10,10 @@
       - FORGEJO_ADMIN_USERNAME | length > 0
       - FORGEJO_ADMIN_PASSWORD | length > 0
       - FORGEJO_ADMIN_EMAIL | length > 0
+      - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_DOMAIN | length > 0
+      - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_PORT | int > 0
+      - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_PORT | int <= 65535
+      - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_USER | length > 0
     quiet: true
   no_log: true
 
