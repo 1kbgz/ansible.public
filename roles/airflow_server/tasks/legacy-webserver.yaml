@@ -1,0 +1,22 @@
+---
+- name: Inspect legacy airflow webserver service
+  ansible.builtin.stat:
+    path: /lib/systemd/system/airflow-webserver.service
+  register: airflow_legacy_webserver_service
+  become: true
+
+- name: Stop and disable legacy airflow webserver service
+  ansible.builtin.systemd:
+    name: airflow-webserver
+    state: stopped
+    enabled: false
+  when: airflow_legacy_webserver_service.stat.exists
+  become: true
+
+- name: Remove legacy airflow webserver service
+  ansible.builtin.file:
+    path: /lib/systemd/system/airflow-webserver.service
+    state: absent
+  when: airflow_legacy_webserver_service.stat.exists
+  notify: Reload daemon files
+  become: true

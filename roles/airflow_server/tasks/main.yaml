@@ -1,3 +1,12 @@
 ---
+- name: Remove legacy airflow webserver service
+  ansible.builtin.include_tasks:
+    file: legacy-webserver.yaml
+    apply:
+      tags:
+        - airflow-server-migration
+  tags:
+    - airflow-server-migration
+
 - name: Run airflow scheduler/api-server/dag-processor/triggerer with systemd
   ansible.builtin.include_tasks: configure.yaml
