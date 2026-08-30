@@ -5,17 +5,27 @@
   register: base_swapfile_stat
 
 - name: Read active swap devices
-  ansible.builtin.command: swapon --show=NAME --noheadings
+  ansible.builtin.command: swapon --show=NAME --noheadings --raw
   register: base_active_swaps
   changed_when: false
 
 - name: Disable managed swapfile before resizing
   ansible.builtin.command: "swapoff {{ base_swapfile_path }}"
   when:
-    - base_swapfile_path in base_active_swaps.stdout_lines
+    - >-
+      base_swapfile_path in
+      (base_active_swaps.stdout_lines | map('trim') | list)
     - >-
       not base_swapfile_stat.stat.exists or
       base_swapfile_stat.stat.size != (base_swapfile_size_mb | int * 1024 * 1024)
+
+- name: Remove incorrectly sized managed swapfile
+  ansible.builtin.file:
+    path: "{{ base_swapfile_path }}"
+    state: absent
+  when: >-
+    base_swapfile_stat.stat.exists and
+    base_swapfile_stat.stat.size != (base_swapfile_size_mb | int * 1024 * 1024)
 
 - name: Allocate managed swapfile
   ansible.builtin.command:
@@ -55,4 +65,5 @@
   when:
     - >-
       base_swapfile_allocate.changed or
-      base_swapfile_path not in base_active_swaps.stdout_lines
+      base_swapfile_path not in
+      (base_active_swaps.stdout_lines | map('trim') | list)

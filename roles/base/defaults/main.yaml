@@ -11,6 +11,7 @@ packages:
 # can bind :53. Opt-in — leave false unless the host runs its own DNS on :53.
 base_disable_resolved_stub: false
 
-# Opt-in managed swapfile size. Zero leaves existing swap configuration alone.
+# Opt-in managed swapfile size on a fallocate-compatible local filesystem.
+# Zero leaves existing swap configuration alone.
 base_swapfile_path: /swapfile
 base_swapfile_size_mb: 0

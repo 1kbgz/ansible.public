@@ -46,6 +46,15 @@
     - Restart celery worker
   become: true
 
+- name: Validate airflow-celery-worker service
+  ansible.builtin.command:
+    argv:
+      - systemd-analyze
+      - verify
+      - /lib/systemd/system/airflow-celery-worker.service
+  changed_when: false
+  become: true
+
 - name: Flush handlers before starting celery worker
   ansible.builtin.meta: flush_handlers
 
