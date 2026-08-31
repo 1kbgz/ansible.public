@@ -14,6 +14,13 @@
       - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_PORT | int > 0
       - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_PORT | int <= 65535
       - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_USER | length > 0
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_PROTOCOL in ['smtp', 'smtps', 'smtp+starttls']
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_SMTP_ADDR | length > 0
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_SMTP_PORT | int > 0
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_SMTP_PORT | int <= 65535
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_USER | length > 0
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_PASSWORD | length > 0
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_FROM | length > 0
     quiet: true
   no_log: true
 
@@ -86,6 +93,26 @@
       value: "{{ FORGEJO_OAUTH2_JWT_SECRET }}"
   become: true
   no_log: true
+  notify: Restart forgejo
+
+- name: Install Forgejo mailer password
+  ansible.builtin.copy:
+    dest: /etc/forgejo/mailer_passwd
+    content: "{{ FORGEJO_MAILER_PASSWORD }}\n"
+    owner: root
+    group: git
+    mode: '0640'
+  become: true
+  no_log: true
+  when: FORGEJO_MAILER_ENABLED | bool
+  notify: Restart forgejo
+
+- name: Remove unused Forgejo mailer password
+  ansible.builtin.file:
+    path: /etc/forgejo/mailer_passwd
+    state: absent
+  become: true
+  when: not (FORGEJO_MAILER_ENABLED | bool)
   notify: Restart forgejo
 
 - name: Install Forgejo configuration

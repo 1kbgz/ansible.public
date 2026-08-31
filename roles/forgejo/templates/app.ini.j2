@@ -27,6 +27,17 @@ LFS_JWT_SECRET_URI = file:/etc/forgejo/lfs_jwt_secret
 DISABLE_REGISTRATION = true
 REQUIRE_SIGNIN_VIEW = true
 
+[mailer]
+ENABLED = {{ FORGEJO_MAILER_ENABLED | bool | lower }}
+{% if FORGEJO_MAILER_ENABLED | bool %}
+PROTOCOL = {{ FORGEJO_MAILER_PROTOCOL }}
+SMTP_ADDR = {{ FORGEJO_MAILER_SMTP_ADDR }}
+SMTP_PORT = {{ FORGEJO_MAILER_SMTP_PORT }}
+USER = {{ FORGEJO_MAILER_USER }}
+PASSWD_URI = file:/etc/forgejo/mailer_passwd
+FROM = {{ FORGEJO_MAILER_FROM }}
+{% endif %}
+
 [security]
 INSTALL_LOCK = true
 SECRET_KEY_URI = file:/etc/forgejo/secret_key
