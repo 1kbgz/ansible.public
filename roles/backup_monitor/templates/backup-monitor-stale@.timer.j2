@@ -1,0 +1,11 @@
+[Unit]
+Description=Check freshness of %i backup hourly
+
+[Timer]
+OnBootSec=5m
+OnUnitActiveSec=1h
+Persistent=true
+Unit=backup-monitor-stale@%i.service
+
+[Install]
+WantedBy=timers.target

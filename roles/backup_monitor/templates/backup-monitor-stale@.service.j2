@@ -1,0 +1,7 @@
+[Unit]
+Description=Check freshness of %i backup
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/backup-monitor/checks/%i
+ExecStart=/usr/local/sbin/backup-monitor stale %i ${BACKUP_DIRECTORY} ${BACKUP_PATTERN} ${BACKUP_MAX_AGE_SECONDS}

@@ -1,0 +1,6 @@
+[Unit]
+Description=Report failed backup service %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/backup-monitor failure %i

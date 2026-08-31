@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: backup_monitor
+  author: 1kbgz
+  description: Alert on failed or stale systemd-managed backups
+  license: AGPL-3.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: [all]
+    - name: Debian
+      versions: [all]
+  galaxy_tags:
+    - backup
+    - monitoring

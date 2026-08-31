@@ -1,0 +1,9 @@
+{
+  "smtp_host": {{ BACKUP_MONITOR_SMTP_HOST | to_json }},
+  "smtp_port": {{ BACKUP_MONITOR_SMTP_PORT | int }},
+  "smtp_user": {{ BACKUP_MONITOR_SMTP_USER | to_json }},
+  "smtp_from": {{ BACKUP_MONITOR_SMTP_FROM | to_json }},
+  "email_to": {{ BACKUP_MONITOR_EMAIL_TO | to_json }},
+  "password_file": "/etc/backup-monitor/smtp-password",
+  "state_directory": "/var/lib/backup-monitor"
+}

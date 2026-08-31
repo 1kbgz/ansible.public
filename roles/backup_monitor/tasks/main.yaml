@@ -1,0 +1,131 @@
+---
+- name: Validate backup monitor configuration
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'Debian'
+      - BACKUP_MONITOR_CHECKS | length > 0
+      - BACKUP_MONITOR_SMTP_HOST | length > 0
+      - BACKUP_MONITOR_SMTP_PORT | int > 0
+      - BACKUP_MONITOR_SMTP_USER | length > 0
+      - BACKUP_MONITOR_SMTP_PASSWORD | length > 0
+      - BACKUP_MONITOR_SMTP_FROM | length > 0
+      - BACKUP_MONITOR_EMAIL_TO | length > 0
+    quiet: true
+  no_log: true
+
+- name: Validate backup monitor checks
+  ansible.builtin.assert:
+    that:
+      - item.name is match('^[a-z0-9-]+$')
+      - item.service is match('^[a-zA-Z0-9@_.-]+$')
+      - item.directory is match('^/[^ ]+$')
+      - item.pattern | length > 0
+      - item.max_age_seconds | int > 0
+    quiet: true
+  loop: "{{ BACKUP_MONITOR_CHECKS }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create backup monitor directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - path: /etc/backup-monitor
+      mode: '0700'
+    - path: /etc/backup-monitor/checks
+      mode: '0755'
+    - path: /var/lib/backup-monitor
+      mode: '0700'
+  become: true
+
+- name: Install backup monitor SMTP password
+  ansible.builtin.copy:
+    dest: /etc/backup-monitor/smtp-password
+    content: "{{ BACKUP_MONITOR_SMTP_PASSWORD }}\n"
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+  no_log: true
+
+- name: Install backup monitor configuration
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: /etc/backup-monitor/config.json
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+
+- name: Install backup monitor command
+  ansible.builtin.copy:
+    src: backup-monitor
+    dest: /usr/local/sbin/backup-monitor
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Install backup monitor check definitions
+  ansible.builtin.template:
+    src: check.j2
+    dest: "/etc/backup-monitor/checks/{{ item.name }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ BACKUP_MONITOR_CHECKS }}"
+  loop_control:
+    label: "{{ item.name }}"
+  become: true
+
+- name: Install backup monitor systemd units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - backup-monitor-failure@.service
+    - backup-monitor-stale@.service
+    - backup-monitor-stale@.timer
+  become: true
+
+- name: Create backup service drop-in directories
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item.service }}.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ BACKUP_MONITOR_CHECKS }}"
+  loop_control:
+    label: "{{ item.service }}"
+  become: true
+
+- name: Install backup service failure hooks
+  ansible.builtin.template:
+    src: failure-hook.conf.j2
+    dest: "/etc/systemd/system/{{ item.service }}.service.d/backup-monitor.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ BACKUP_MONITOR_CHECKS }}"
+  loop_control:
+    label: "{{ item.service }}"
+  become: true
+
+- name: Enable backup stale timers
+  ansible.builtin.systemd:
+    name: "backup-monitor-stale@{{ item.name }}.timer"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: "{{ BACKUP_MONITOR_CHECKS }}"
+  loop_control:
+    label: "{{ item.name }}"
+  become: true

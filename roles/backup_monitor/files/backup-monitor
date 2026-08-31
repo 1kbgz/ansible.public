@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+import glob
+import json
+import smtplib
+import subprocess
+import sys
+import time
+from email.message import EmailMessage
+from pathlib import Path
+
+
+CONFIG_PATH = Path("/etc/backup-monitor/config.json")
+
+
+def load_config():
+    with CONFIG_PATH.open(encoding="utf-8") as stream:
+        return json.load(stream)
+
+
+def notify(config, subject, body):
+    password = Path(config["password_file"]).read_text(encoding="utf-8").strip()
+    message = EmailMessage()
+    message["From"] = config["smtp_from"]
+    message["To"] = config["email_to"]
+    message["Subject"] = subject
+    message.set_content(body)
+
+    with smtplib.SMTP(config["smtp_host"], config["smtp_port"], timeout=30) as smtp:
+        smtp.starttls()
+        smtp.login(config["smtp_user"], password)
+        smtp.send_message(message)
+
+
+def report_failure(config, service):
+    journal = subprocess.run(
+        ["journalctl", "--unit", f"{service}.service", "--lines", "40", "--no-pager"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    body = f"{service}.service failed on {Path('/etc/hostname').read_text().strip()}.\n\n{journal.stdout}"
+    notify(config, f"Backup failed: {service}", body)
+
+
+def check_stale(config, name, directory, pattern, max_age_seconds):
+    backups = [Path(path) for path in glob.glob(str(Path(directory) / pattern))]
+    newest = max(backups, key=lambda path: path.stat().st_mtime) if backups else None
+    age = time.time() - newest.stat().st_mtime if newest else None
+    marker = Path(config["state_directory"]) / f"{name}.stale"
+
+    if newest and age <= max_age_seconds:
+        marker.unlink(missing_ok=True)
+        return
+
+    if marker.exists():
+        return
+
+    detail = "no matching backup exists" if newest is None else f"newest backup is {int(age)} seconds old: {newest}"
+    notify(config, f"Backup stale: {name}", detail)
+    marker.touch(mode=0o600)
+
+
+def main():
+    config = load_config()
+    if len(sys.argv) == 3 and sys.argv[1] == "failure":
+        report_failure(config, sys.argv[2])
+        return
+    if len(sys.argv) == 6 and sys.argv[1] == "stale":
+        check_stale(config, sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
+        return
+    raise SystemExit("usage: backup-monitor failure SERVICE | stale NAME DIRECTORY PATTERN MAX_AGE_SECONDS")
+
+
+if __name__ == "__main__":
+    main()

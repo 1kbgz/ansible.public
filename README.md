@@ -22,3 +22,10 @@ use privileged mode, host mounts, or the runner's Podman socket.
 The `launchd_jobs` role installs and loads scheduled per-user jobs on macOS.
 Callers provide labels, argument arrays, calendar intervals, and log paths;
 host-specific scripts and paths remain in the consuming inventory.
+
+## Backup monitoring
+
+The `backup_monitor` role adds systemd failure hooks and hourly freshness checks
+to existing backup services. It sends deduplicated SMTP alerts when a service
+fails or its expected backup artifact becomes stale. Callers provide backup
+paths, age thresholds, recipients, and SMTP credentials.
