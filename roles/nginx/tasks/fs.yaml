@@ -25,6 +25,21 @@
     owner: nginx
     group: services
 
+- name: Set nginx temporary directory ownership
+  ansible.builtin.file:
+    path: "/var/lib/nginx/{{ item }}"
+    state: directory
+    owner: nginx
+    group: services
+    recurse: true
+  loop:
+    - body
+    - fastcgi
+    - proxy
+    - scgi
+    - uwsgi
+  become: true
+
 - name: Create log directory if it does not exist
   ansible.builtin.file:
     path: /var/log/nginx
