@@ -18,6 +18,18 @@
     quiet: true
   no_log: true
 
+- name: Check Forgejo Runner memory controller
+  ansible.builtin.stat:
+    path: /sys/fs/cgroup/memory.max
+  register: _forgejo_runner_memory_controller
+
+- name: Require memory limits for enabled Forgejo Runners
+  ansible.builtin.assert:
+    that:
+      - not (FORGEJO_RUNNER_ENABLED | bool) or _forgejo_runner_memory_controller.stat.exists
+    quiet: true
+    fail_msg: Enabled Forgejo Runners require the cgroup v2 memory controller
+
 - name: Install Forgejo Runner dependencies
   ansible.builtin.apt:
     name:
