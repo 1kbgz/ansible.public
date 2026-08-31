@@ -7,6 +7,7 @@
     group: services
     content: "{{ lookup('ansible.builtin.template', '../config/airflow' + AIRFLOW_MAJOR_VERSION + '.cfg') }}"
   become: true
+  no_log: true
 
 - name: Copy webserver config file into place
   ansible.builtin.copy:

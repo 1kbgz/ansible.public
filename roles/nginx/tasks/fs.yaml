@@ -31,7 +31,7 @@
     state: directory
     owner: nginx
     group: services
-    recurse: true
+    mode: '0700'
   loop:
     - body
     - fastcgi

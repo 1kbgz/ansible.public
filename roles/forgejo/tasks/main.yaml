@@ -14,7 +14,7 @@
       - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_PORT | int > 0
       - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_PORT | int <= 65535
       - not (FORGEJO_SSH_ENABLED | bool) or FORGEJO_SSH_USER | length > 0
-      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_PROTOCOL in ['smtp', 'smtps', 'smtp+starttls']
+      - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_PROTOCOL in ['smtps', 'smtp+starttls']
       - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_SMTP_ADDR | length > 0
       - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_SMTP_PORT | int > 0
       - not (FORGEJO_MAILER_ENABLED | bool) or FORGEJO_MAILER_SMTP_PORT | int <= 65535

@@ -21,6 +21,7 @@
 - name: Install Forgejo Runner dependencies
   ansible.builtin.apt:
     name:
+      - catatonit
       - dbus-user-session
       - fuse-overlayfs
       - git
