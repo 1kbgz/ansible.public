@@ -1,0 +1,43 @@
+---
+- name: Validate code-server configuration
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'Darwin'
+      - CODE_SERVER_AUTH in ['none', 'password']
+      - CODE_SERVER_AUTH != 'password' or CODE_SERVER_PASSWORD | length > 0
+    fail_msg: The code_server role supports macOS and requires a password when authentication is enabled
+  no_log: true
+
+- name: Install code-server
+  community.general.homebrew:
+    name: code-server
+    state: present
+
+- name: Create code-server configuration directory
+  ansible.builtin.file:
+    path: "{{ CODE_SERVER_CONFIG_DIRECTORY }}"
+    state: directory
+    mode: '0700'
+
+- name: Install code-server configuration
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ CODE_SERVER_CONFIG_PATH }}"
+    mode: '0600'
+  no_log: true
+  notify: Restart code-server
+
+- name: Set code-server service state
+  community.general.homebrew_services:
+    name: code-server
+    state: "{{ 'present' if CODE_SERVER_SERVICE_ENABLED else 'absent' }}"
+
+- name: Apply code-server configuration changes
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for code-server
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ CODE_SERVER_BIND_ADDR.rsplit(':', 1)[1] | int }}"
+    timeout: 60
+  when: CODE_SERVER_SERVICE_ENABLED | bool

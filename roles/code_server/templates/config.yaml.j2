@@ -1,0 +1,4 @@
+bind-addr: {{ CODE_SERVER_BIND_ADDR | to_json }}
+auth: {{ CODE_SERVER_AUTH }}
+password: {{ CODE_SERVER_PASSWORD | to_json }}
+cert: {{ CODE_SERVER_CERT | bool | ternary('true', 'false') }}

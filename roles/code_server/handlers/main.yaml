@@ -1,0 +1,6 @@
+---
+- name: Restart code-server
+  community.general.homebrew_services:
+    name: code-server
+    state: restarted
+  when: CODE_SERVER_SERVICE_ENABLED | bool

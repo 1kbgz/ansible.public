@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: code_server
+  author: 1kbgz
+  description: Install and configure code-server on macOS
+  license: AGPL-3.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+  galaxy_tags:
+    - development
+    - editor

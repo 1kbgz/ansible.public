@@ -23,6 +23,13 @@ The `launchd_jobs` role installs and loads scheduled per-user jobs on macOS.
 Callers provide labels, argument arrays, calendar intervals, and log paths;
 host-specific scripts and paths remain in the consuming inventory.
 
+## code-server
+
+The `code_server` role installs code-server with Homebrew on macOS, writes its
+user configuration with mode `0600`, and manages its Homebrew LaunchAgent.
+`CODE_SERVER_BIND_ADDR`, `CODE_SERVER_AUTH`, `CODE_SERVER_PASSWORD`,
+`CODE_SERVER_CERT`, and `CODE_SERVER_SERVICE_ENABLED` control the deployment.
+
 ## Backup monitoring
 
 The `backup_monitor` role adds systemd failure hooks and hourly freshness checks
