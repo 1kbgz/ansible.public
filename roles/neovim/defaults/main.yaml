@@ -1,0 +1,17 @@
+---
+NEOVIM_VERSION: 0.12.5
+NEOVIM_PACKAGES:
+  x86_64:
+    architecture: x86_64
+    checksum: sha256:bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+  amd64:
+    architecture: x86_64
+    checksum: sha256:bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+  aarch64:
+    architecture: arm64
+    checksum: sha256:1aa5ca085249580ae0f91eb14f27ec0919773ff2d99a163d03f3d6c21ac29725
+  arm64:
+    architecture: arm64
+    checksum: sha256:1aa5ca085249580ae0f91eb14f27ec0919773ff2d99a163d03f3d6c21ac29725
+NEOVIM_INSTALL_DIRECTORY: "/opt/neovim-{{ NEOVIM_VERSION }}"
+NEOVIM_BINARY: /usr/local/bin/nvim

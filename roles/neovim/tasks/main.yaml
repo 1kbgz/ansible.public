@@ -1,0 +1,56 @@
+---
+- name: Validate Neovim host
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] in ['Darwin', 'Debian']
+      - ansible_facts['os_family'] != 'Debian' or ansible_facts['architecture'] in NEOVIM_PACKAGES
+    fail_msg: Neovim supports macOS and AMD64 or ARM64 Debian-family Linux
+
+- name: Install Neovim on macOS
+  community.general.homebrew:
+    name: neovim
+    state: present
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Select Neovim Linux package
+  ansible.builtin.set_fact:
+    _neovim_package: "{{ NEOVIM_PACKAGES[ansible_facts['architecture']] }}"
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Download Neovim on Linux
+  ansible.builtin.get_url:
+    url: >-
+      https://github.com/neovim/neovim/releases/download/v{{ NEOVIM_VERSION }}/nvim-linux-{{ _neovim_package.architecture }}.tar.gz
+    dest: "/tmp/nvim-linux-{{ _neovim_package.architecture }}-{{ NEOVIM_VERSION }}.tar.gz"
+    checksum: "{{ _neovim_package.checksum }}"
+    mode: '0644'
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Create Neovim installation directory on Linux
+  ansible.builtin.file:
+    path: "{{ NEOVIM_INSTALL_DIRECTORY }}"
+    state: directory
+    mode: '0755'
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install Neovim on Linux
+  ansible.builtin.unarchive:
+    src: "/tmp/nvim-linux-{{ _neovim_package.architecture }}-{{ NEOVIM_VERSION }}.tar.gz"
+    dest: "{{ NEOVIM_INSTALL_DIRECTORY }}"
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+    creates: "{{ NEOVIM_INSTALL_DIRECTORY }}/bin/nvim"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Link Neovim binary on Linux
+  ansible.builtin.file:
+    src: "{{ NEOVIM_INSTALL_DIRECTORY }}/bin/nvim"
+    dest: "{{ NEOVIM_BINARY }}"
+    state: link
+    force: true
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'

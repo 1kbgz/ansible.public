@@ -2,35 +2,77 @@
 - name: Validate code-server configuration
   ansible.builtin.assert:
     that:
-      - ansible_facts['os_family'] == 'Darwin'
+      - ansible_facts['os_family'] in ['Darwin', 'Debian']
       - CODE_SERVER_AUTH in ['none', 'password']
       - CODE_SERVER_AUTH != 'password' or CODE_SERVER_PASSWORD | length > 0
-    fail_msg: The code_server role supports macOS and requires a password when authentication is enabled
+      - CODE_SERVER_USER | length > 0
+      - CODE_SERVER_HOME | length > 0
+      - ansible_facts['os_family'] != 'Debian' or ansible_facts['architecture'] in CODE_SERVER_PACKAGES
+    fail_msg: Unsupported code-server host or invalid authentication configuration
   no_log: true
 
-- name: Install code-server
+- name: Install code-server on macOS
   community.general.homebrew:
     name: code-server
     state: present
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Select code-server Linux package
+  ansible.builtin.set_fact:
+    _code_server_package: "{{ CODE_SERVER_PACKAGES[ansible_facts['architecture']] }}"
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Download code-server Linux package
+  ansible.builtin.get_url:
+    url: >-
+      https://github.com/coder/code-server/releases/download/v{{ CODE_SERVER_VERSION }}/code-server_{{ CODE_SERVER_VERSION }}_{{ _code_server_package.architecture }}.deb
+    dest: "/tmp/code-server_{{ CODE_SERVER_VERSION }}_{{ _code_server_package.architecture }}.deb"
+    checksum: "{{ _code_server_package.checksum }}"
+    mode: '0644'
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install code-server on Linux
+  ansible.builtin.apt:
+    deb: "/tmp/code-server_{{ CODE_SERVER_VERSION }}_{{ _code_server_package.architecture }}.deb"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+  notify: Restart code-server
 
 - name: Create code-server configuration directory
   ansible.builtin.file:
     path: "{{ CODE_SERVER_CONFIG_DIRECTORY }}"
     state: directory
+    owner: "{{ CODE_SERVER_USER }}"
+    group: "{{ CODE_SERVER_GROUP }}"
     mode: '0700'
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
 
 - name: Install code-server configuration
   ansible.builtin.template:
     src: config.yaml.j2
     dest: "{{ CODE_SERVER_CONFIG_PATH }}"
+    owner: "{{ CODE_SERVER_USER }}"
+    group: "{{ CODE_SERVER_GROUP }}"
     mode: '0600'
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
   no_log: true
   notify: Restart code-server
 
-- name: Set code-server service state
+- name: Set code-server service state on macOS
   community.general.homebrew_services:
     name: code-server
     state: "{{ 'present' if CODE_SERVER_SERVICE_ENABLED else 'absent' }}"
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Set code-server service state on Linux
+  ansible.builtin.systemd:
+    name: "code-server@{{ CODE_SERVER_USER }}"
+    enabled: "{{ CODE_SERVER_SERVICE_ENABLED }}"
+    state: "{{ 'started' if CODE_SERVER_SERVICE_ENABLED else 'stopped' }}"
+    daemon_reload: true
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
 
 - name: Apply code-server configuration changes
   ansible.builtin.meta: flush_handlers
