@@ -10,7 +10,8 @@
 The `forgejo` role installs a pinned, checksummed Forgejo LTS binary, SQLite
 configuration, systemd service, and initial administrator. The role listens on
 loopback by default and requires callers to provide secret material and any
-network exposure policy.
+network exposure policy. `FORGEJO_LFS_MAX_FILE_SIZE` sets maximum LFS object
+size in bytes and defaults to 100 MiB.
 
 The `forgejo_runner` role installs a pinned, checksummed Actions runner using a
 dedicated account and rootless Podman. Callers provide offline registration
