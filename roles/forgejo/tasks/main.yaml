@@ -59,6 +59,12 @@
     - path: /var/lib/forgejo/data/repositories
       owner: git
       mode: '0750'
+    - path: /var/lib/forgejo/custom
+      owner: git
+      mode: '0750'
+    - path: /var/lib/forgejo/log
+      owner: git
+      mode: '0750'
     - path: /etc/forgejo
       owner: root
       mode: '0750'
