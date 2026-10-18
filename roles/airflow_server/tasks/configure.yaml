@@ -10,6 +10,7 @@
       Description=Airflow api-server daemon
       Wants=network.target airflow-db.service airflow-scheduler.service
       After=network.target airflow-db.service airflow-scheduler.service
+      RequiresMountsFor=/var/lib/airflow /home/airflow
 
       [Service]
       User=airflow
@@ -37,6 +38,7 @@
       [Unit]
       Description=Airflow scheduler daemon
       After=network.target airflow-db.service
+      RequiresMountsFor=/var/lib/airflow /home/airflow
       Wants=network.target airflow-db.service
 
       [Service]
@@ -64,6 +66,7 @@
       [Unit]
       Description=Airflow triggerer daemon
       After=network.target airflow-db.service
+      RequiresMountsFor=/var/lib/airflow /home/airflow
       Wants=network.target airflow-db.service
 
       [Service]
@@ -91,6 +94,7 @@
       [Unit]
       Description=Airflow dag-processor daemon
       After=network.target airflow-db.service
+      RequiresMountsFor=/var/lib/airflow /home/airflow
       Wants=network.target airflow-db.service
 
       [Service]
