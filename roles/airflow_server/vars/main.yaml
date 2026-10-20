@@ -1,0 +1,2 @@
+---
+_airflow_server_services: "{{ ['airflow-api-server', 'airflow-scheduler', 'airflow-triggerer'] + (['airflow-dag-processor'] if AIRFLOW_STANDALONE_DAG_PROCESSOR | bool else []) }}"

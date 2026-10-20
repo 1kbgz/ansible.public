@@ -1,2 +1,5 @@
 ---
 AIRFLOW_APISERVER_PORT: 8100
+# Airflow 3 always runs the DAG processor separately; Airflow 2 parses DAGs in the scheduler unless
+# standalone_dag_processor is enabled in airflow.cfg.
+AIRFLOW_STANDALONE_DAG_PROCESSOR: "{{ AIRFLOW_MAJOR_VERSION | int >= 3 }}"
