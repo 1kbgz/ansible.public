@@ -111,6 +111,21 @@
     - Reload daemon files
     - Restart airflow-dag-processor
   become: true
+  when: AIRFLOW_STANDALONE_DAG_PROCESSOR | bool
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+  when: not AIRFLOW_STANDALONE_DAG_PROCESSOR | bool
+
+- name: Stop and disable airflow-dag-processor when the scheduler parses DAGs
+  ansible.builtin.systemd:
+    name: airflow-dag-processor
+    state: stopped
+    enabled: false
+  become: true
+  when:
+    - not AIRFLOW_STANDALONE_DAG_PROCESSOR | bool
+    - "'airflow-dag-processor.service' in ansible_facts.services"
 
 - name: Restart airflow services after upgrade
   ansible.builtin.systemd:
@@ -118,11 +133,7 @@
     state: restarted
     enabled: true
   become: true
-  loop:
-    - airflow-api-server
-    - airflow-scheduler
-    - airflow-triggerer
-    - airflow-dag-processor
+  loop: "{{ _airflow_server_services }}"
   when: airflow_upgraded | default(false)
 
 - name: Ensure airflow server services are started and enabled
@@ -131,8 +142,4 @@
     state: started
     enabled: true
   become: true
-  loop:
-    - airflow-api-server
-    - airflow-scheduler
-    - airflow-triggerer
-    - airflow-dag-processor
+  loop: "{{ _airflow_server_services }}"
