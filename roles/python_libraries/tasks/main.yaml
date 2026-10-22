@@ -4,7 +4,8 @@
     that:
       - PYTHON_LIBRARIES_VIRTUALENV | length > 0
       - PYTHON_LIBRARIES_USER | length > 0
-    fail_msg: PYTHON_LIBRARIES_VIRTUALENV and PYTHON_LIBRARIES_USER are required
+      - PYTHON_LIBRARIES_INSTALLER in ["pip", "uv"]
+    fail_msg: PYTHON_LIBRARIES_VIRTUALENV and PYTHON_LIBRARIES_USER are required, and PYTHON_LIBRARIES_INSTALLER must be pip or uv
 
 - name: Check Python virtualenv
   ansible.builtin.stat:
@@ -51,6 +52,24 @@
   become: true
   become_user: "{{ PYTHON_LIBRARIES_USER }}"
   environment: "{{ PYTHON_LIBRARIES_ENVIRONMENT }}"
+  when: PYTHON_LIBRARIES_INSTALLER == "pip"
+  notify: Restart services after Python library changes
+
+- name: Install editable Python libraries with uv
+  ansible.builtin.command:
+    argv: >-
+      {{ [PYTHON_LIBRARIES_UV, "pip", "install", "--python", PYTHON_LIBRARIES_VIRTUALENV ~ "/bin/python", "--no-deps"]
+         + (PYTHON_LIBRARIES_EDITABLE_PATHS | map("regex_replace", "^", "--editable=") | list) }}
+  register: python_libraries_uv_install
+  # uv lists reinstalled packages as " - name" / " + name" lines; nothing is listed when every install is current.
+  changed_when: python_libraries_uv_install.stderr is search("(?m)^ [+-] ")
+  become: true
+  become_user: "{{ PYTHON_LIBRARIES_USER }}"
+  # Ignore uv.toml files discovered from the working directory, such as a login user's home.
+  environment: "{{ {'UV_NO_CONFIG': '1'} | combine(PYTHON_LIBRARIES_ENVIRONMENT) }}"
+  when:
+    - PYTHON_LIBRARIES_INSTALLER == "uv"
+    - PYTHON_LIBRARIES_EDITABLE_PATHS | length > 0
   notify: Restart services after Python library changes
 
 - name: Validate Python library imports
