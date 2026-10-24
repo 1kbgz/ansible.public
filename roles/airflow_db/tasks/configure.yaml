@@ -23,6 +23,20 @@
     msg: "initdb returned rc={{ initdb_result.rc }}, stderr={{ initdb_result.stderr }}"
   when: not db_data.stat.exists and initdb_result is failed
 
+# /etc/postgresql/<version> links to /var/lib/postgresql/<version>, so the
+# Debian generator treats airflow_data as a cluster and autostarts it alongside
+# airflow-db. Mark it disabled so only airflow-db manages it.
+- name: Disable Debian cluster autostart for airflow db
+  ansible.builtin.copy:
+    dest: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/start.conf
+    content: "disabled\n"
+    mode: '0644'
+    owner: postgres
+    group: services
+  become: true
+  notify:
+    - Reload daemon files
+
 - name: Setup postgres port
   ansible.builtin.lineinfile:
     path: /var/lib/postgresql/{{ POSTGRES_VERSION }}/airflow_data/postgresql.conf
