@@ -154,6 +154,7 @@
     update_cache: true
   when: _is_non_raspbian_debian
 
+# Arrow adds release managers' keys to KEYS over time, so fetch it every run and rebuild the keyring when it changes.
 - name: Add apache arrow key
   ansible.builtin.get_url:
     url: 'https://downloads.apache.org/arrow/KEYS'
@@ -161,14 +162,21 @@
     mode: '0644'
     owner: root
     group: root
+    force: true
+  register: _apache_arrow_keys
+  when: _is_non_raspbian_debian
+
+- name: Check apache arrow keyring
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/apache-arrow-apt-source.gpg
+  register: _apache_arrow_keyring
   when: _is_non_raspbian_debian
 
 - name: De-armor apache arrow key
   ansible.builtin.command:
-    cmd: 'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
-  args:
-    creates: /usr/share/keyrings/apache-arrow-apt-source.gpg
-  when: _is_non_raspbian_debian
+    cmd: 'gpg --batch --yes --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
+  changed_when: true
+  when: _is_non_raspbian_debian and (_apache_arrow_keys is changed or not _apache_arrow_keyring.stat.exists)
 
 - name: Add apache arrow apt repository
   ansible.builtin.apt_repository:
