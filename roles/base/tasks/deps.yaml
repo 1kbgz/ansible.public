@@ -180,7 +180,7 @@
 
 - name: Add apache arrow apt repository
   ansible.builtin.apt_repository:
-    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/apache-arrow-apt-source.gpg] https://apache.jfrog.io/artifactory/arrow/ubuntu/ {{ ansible_facts["distribution_release"] }} main'
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/apache-arrow-apt-source.gpg] https://packages.apache.org/artifactory/arrow/ubuntu/ {{ ansible_facts["distribution_release"] }} main'
     state: present
     filename: apache-arrow
     update_cache: true
