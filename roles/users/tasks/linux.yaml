@@ -25,14 +25,25 @@
   when: AUTH_SOURCE != 'ipa'
   # NOTE: external managed by IPA
 
-- name: Stop services for service users before modifying them
+- name: Look up existing service users
+  ansible.builtin.getent:
+    database: passwd
+  when: AUTH_SOURCE != 'ipa'
+
+# usermod cannot change the uid of a user with running processes, so a service user's unit is stopped first, but only
+# when its uid changes. Stopping it on every run would leave services that started earlier in the play stopped.
+- name: Stop services for service users whose uid changes
   ansible.builtin.systemd:
     name: "{{ item.value.username }}"
     state: stopped
   become: true
   loop: "{{ SERVICE_USERS | dict2items }}"
+  register: _service_users_stopped
   failed_when: false
-  when: AUTH_SOURCE != 'ipa'
+  when:
+    - AUTH_SOURCE != 'ipa'
+    - item.value.username in ansible_facts.getent_passwd
+    - ansible_facts.getent_passwd[item.value.username][1] | string != item.value.uid | string
 
 - name: Add the service users
   ansible.builtin.user:
@@ -46,3 +57,10 @@
   loop: "{{ SERVICE_USERS | dict2items }}"
   when: AUTH_SOURCE != 'ipa'
   # NOTE: external managed by IPA
+
+- name: Start the services stopped for a uid change
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  become: true
+  loop: "{{ _service_users_stopped.results | default([]) | selectattr('changed') | map(attribute='item.value.username') | list }}"
