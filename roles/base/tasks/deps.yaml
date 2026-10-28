@@ -154,27 +154,21 @@
     update_cache: true
   when: _is_non_raspbian_debian
 
-- name: Add apache arrow key
-  ansible.builtin.get_url:
-    url: 'https://downloads.apache.org/arrow/KEYS'
-    dest: /usr/share/keyrings/apache-arrow-apt-source.gpg.key
-    mode: '0644'
-    owner: root
-    group: root
-  when: _is_non_raspbian_debian
+# Arrow's apt-source package installs its signing keys and repository definition, and keeps both current through
+# package upgrades. Earlier versions of this role wrote the repository by hand, which conflicts with the package.
+- name: Remove hand-written apache arrow apt repository
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/apache-arrow.list
+    state: absent
+  when: _is_non_raspbian_amd64
 
-- name: De-armor apache arrow key
-  ansible.builtin.command:
-    cmd: 'gpg --dearmor -o /usr/share/keyrings/apache-arrow-apt-source.gpg /usr/share/keyrings/apache-arrow-apt-source.gpg.key'
-  args:
-    creates: /usr/share/keyrings/apache-arrow-apt-source.gpg
-  when: _is_non_raspbian_debian
+- name: Install apache arrow apt source
+  ansible.builtin.apt:
+    deb: 'https://packages.apache.org/artifactory/arrow/{{ ansible_facts["distribution"] | lower }}/apache-arrow-apt-source-latest-{{ ansible_facts["distribution_release"] }}.deb'
+  when: _is_non_raspbian_amd64
 
-- name: Add apache arrow apt repository
-  ansible.builtin.apt_repository:
-    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/apache-arrow-apt-source.gpg] https://apache.jfrog.io/artifactory/arrow/ubuntu/ {{ ansible_facts["distribution_release"] }} main'
-    state: present
-    filename: apache-arrow
+- name: Update apt cache after adding apache arrow
+  ansible.builtin.apt:
     update_cache: true
   when: _is_non_raspbian_amd64
 
