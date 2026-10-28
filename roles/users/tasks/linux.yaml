@@ -60,10 +60,7 @@
 
 - name: Start the services stopped for a uid change
   ansible.builtin.systemd:
-    name: "{{ item.item.value.username }}"
+    name: "{{ item }}"
     state: started
   become: true
-  loop: "{{ _service_users_stopped.results | default([]) }}"
-  loop_control:
-    label: "{{ item.item.value.username }}"
-  when: item is changed
+  loop: "{{ _service_users_stopped.results | default([]) | selectattr('changed') | map(attribute='item.value.username') | list }}"
