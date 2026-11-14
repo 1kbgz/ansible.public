@@ -51,8 +51,6 @@ packages:
     - golang
     - htop
     - keyutils
-    - krb5-admin-server
-    - krb5-kdc
     - openjdk-11-jdk
     - libboost-dev
     - libkrb5-dev
@@ -73,8 +71,7 @@ packages:
     - plocate
     - python3.12-dev
     - python3.12-venv
-    - redis
-    - redis-server
+    - redis-tools
     - screen
     - smbclient
     - tar
