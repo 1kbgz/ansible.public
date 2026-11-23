@@ -5,6 +5,15 @@
 - `ANSIBLE_PRIMARY_USER`: username of primary ansible owner
 - `ROOT_DOMAIN`: base domain
 
+## Tailscale
+
+Set `tailscale_prefer_local_routes: true` on Linux clients that accept subnet
+routes and also join those networks directly. The role enables a systemd
+service that checks the main IPv4 routing table before Tailscale's table,
+excluding the main table's default route. Connected networks use the local
+interface; destinations without a specific local route continue through
+Tailscale's routing rules.
+
 ## Forgejo
 
 The `forgejo` role installs a pinned, checksummed Forgejo LTS binary, SQLite

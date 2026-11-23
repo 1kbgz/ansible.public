@@ -35,6 +35,22 @@
         enabled: true
         state: started
 
+    - name: Install local route preference service
+      ansible.builtin.copy:
+        src: tailscale-local-routes.service
+        dest: /etc/systemd/system/tailscale-local-routes.service
+        mode: '0644'
+      register: _tailscale_local_routes_service
+      when: tailscale_prefer_local_routes | bool
+
+    - name: Enable local route preference service
+      ansible.builtin.systemd:
+        name: tailscale-local-routes.service
+        enabled: true
+        state: started
+        daemon_reload: "{{ _tailscale_local_routes_service.changed }}"
+      when: tailscale_prefer_local_routes | bool
+
 - name: MacOS install (Homebrew)
   when: ansible_facts['os_family'] == 'Darwin'
   block:

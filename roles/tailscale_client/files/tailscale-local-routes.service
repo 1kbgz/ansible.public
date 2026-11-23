@@ -1,0 +1,13 @@
+[Unit]
+Description=Prefer directly connected IPv4 routes over Tailscale subnet routes
+After=network-pre.target
+Before=tailscaled.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c '/usr/sbin/ip -4 rule show | /usr/bin/grep -q "^5200:.*lookup main suppress_prefixlength 0$" || /usr/sbin/ip -4 rule add priority 5200 lookup main suppress_prefixlength 0'
+ExecStop=/usr/sbin/ip -4 rule del priority 5200 lookup main suppress_prefixlength 0
+
+[Install]
+WantedBy=multi-user.target
