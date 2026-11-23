@@ -17,6 +17,33 @@
     _neovim_package: "{{ NEOVIM_PACKAGES[ansible_facts['architecture']] }}"
   when: ansible_facts['os_family'] == 'Debian'
 
+- name: Install Linux font dependencies
+  ansible.builtin.apt:
+    name:
+      - fontconfig
+    state: present
+  become: true
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - NEOVIM_FONT_FILES | length > 0
+
+- name: Create Neovim terminal font directory
+  ansible.builtin.file:
+    path: "{{ NEOVIM_FONT_DIRECTORY }}"
+    state: directory
+    mode: '0755'
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
+  when: NEOVIM_FONT_FILES | length > 0
+
+- name: Install Neovim terminal font files from controller
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ NEOVIM_FONT_DIRECTORY }}/{{ item | basename }}"
+    mode: '0644'
+  loop: "{{ NEOVIM_FONT_FILES }}"
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
+  notify: Refresh font cache
+
 - name: Download Neovim on Linux
   ansible.builtin.get_url:
     url: >-

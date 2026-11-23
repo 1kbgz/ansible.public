@@ -1,0 +1,18 @@
+---
+PI_VERSION: 1.6.0
+PI_CLAUDE_CODE_REVISION: d5b5e04c314d3452d357174d16d10dda34daa2d2
+PI_ARCHITECTURES:
+  x86_64: x64
+  aarch64: arm64
+  arm64: arm64
+PI_CHECKSUMS:
+  linux-x64: sha256:ef77dbe4379b3bdeb425a1e1b862fa3c915c255000dfe4965c98eee96a5765d1
+  linux-arm64: sha256:5404547b9739be596d50ae7142c52535899e8e7dd37a7bace9be593e0355b468
+  darwin-x64: sha256:5b69cd87c3b00e74cce2d1499df3b7a1ec73632f11abf64696d110f0f4dc4192
+  darwin-arm64: sha256:6429287b7ae98d726ec577815d14fd680e7c587e89ecc5153b4a145dc4adba33
+PI_INSTALL_DIRECTORY: >-
+  {{ ansible_facts['user_dir'] + '/.local/share/pi/releases/' + PI_VERSION
+     if ansible_facts['os_family'] == 'Darwin' else '/opt/pi-' + PI_VERSION }}
+PI_BINARY: >-
+  {{ ansible_facts['user_dir'] + '/.local/bin/pi'
+     if ansible_facts['os_family'] == 'Darwin' else '/usr/local/bin/pi' }}

@@ -1,0 +1,6 @@
+---
+- name: Refresh font cache
+  ansible.builtin.command: fc-cache -f
+  become: true
+  changed_when: true
+  when: ansible_facts['os_family'] == 'Debian'

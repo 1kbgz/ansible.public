@@ -1,0 +1,62 @@
+---
+- name: Validate Pi coding agent host
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] in ['Darwin', 'Debian']
+      - ansible_facts['architecture'] in PI_ARCHITECTURES
+    fail_msg: Pi supports macOS and Debian-family Linux on AMD64 or ARM64
+
+- name: Select Pi release platform
+  ansible.builtin.set_fact:
+    _pi_platform: >-
+      {{ ('darwin' if ansible_facts['os_family'] == 'Darwin' else 'linux')
+         + '-' + PI_ARCHITECTURES[ansible_facts['architecture']] }}
+
+- name: Download verified Pi release
+  ansible.builtin.get_url:
+    url: https://github.com/earendil-works/pi/releases/download/v{{ PI_VERSION }}/pi-{{ _pi_platform }}.tar.gz
+    dest: /tmp/pi-{{ PI_VERSION }}-{{ _pi_platform }}.tar.gz
+    checksum: "{{ PI_CHECKSUMS[_pi_platform] }}"
+    mode: '0644'
+
+- name: Create Pi installation directory
+  ansible.builtin.file:
+    path: "{{ PI_INSTALL_DIRECTORY }}"
+    state: directory
+    mode: '0755'
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
+
+- name: Install Pi release
+  # unarchive requires GNU tar; macOS supplies BSD tar.
+  ansible.builtin.command: # noqa command-instead-of-module
+    argv:
+      - tar
+      - -xzf
+      - /tmp/pi-{{ PI_VERSION }}-{{ _pi_platform }}.tar.gz
+      - --strip-components=1
+      - --no-same-owner
+      - -C
+      - "{{ PI_INSTALL_DIRECTORY }}"
+    creates: "{{ PI_INSTALL_DIRECTORY }}/pi"
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
+
+- name: Create Pi command directory
+  ansible.builtin.file:
+    path: "{{ PI_BINARY | dirname }}"
+    state: directory
+    mode: '0755'
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
+
+- name: Link Pi command
+  ansible.builtin.file:
+    src: "{{ PI_INSTALL_DIRECTORY }}/pi"
+    dest: "{{ PI_BINARY }}"
+    state: link
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"
+
+- name: Install pinned Claude Code subscription provider
+  ansible.builtin.git:
+    repo: https://github.com/earendil-works/pi-claude-code.git
+    dest: "{{ PI_INSTALL_DIRECTORY }}/providers/claude-code"
+    version: "{{ PI_CLAUDE_CODE_REVISION }}"
+  become: "{{ ansible_facts['os_family'] == 'Debian' }}"

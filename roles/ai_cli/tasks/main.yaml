@@ -1,0 +1,104 @@
+---
+- name: Validate AI CLI host
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'Debian'
+      - ansible_facts['architecture'] in ['x86_64', 'aarch64']
+      - CLAUDE_CODE_CHANNEL in ['stable', 'latest']
+    fail_msg: AI CLIs require AMD64 or ARM64 Debian-family Linux
+
+- name: Create apt keyring directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Install verified Anthropic repository key
+  ansible.builtin.get_url:
+    url: https://downloads.claude.ai/keys/claude-code.asc
+    dest: /etc/apt/keyrings/claude-code.asc
+    checksum: "{{ CLAUDE_CODE_KEY_CHECKSUM }}"
+    mode: '0644'
+  become: true
+
+- name: Configure Claude Code apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/claude-code.asc]
+      https://downloads.claude.ai/claude-code/apt/{{ CLAUDE_CODE_CHANNEL }} {{ CLAUDE_CODE_CHANNEL }} main
+    filename: claude-code
+    state: present
+    update_cache: true
+  become: true
+
+- name: Inspect legacy global npm Claude launcher
+  ansible.builtin.stat:
+    path: /usr/bin/claude
+    follow: false
+  register: _ai_cli_legacy_claude
+
+- name: Remove legacy global npm Claude installation
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/npm
+      - uninstall
+      - --global
+      - '@anthropic-ai/claude-code'
+  become: true
+  changed_when: true
+  when: "'/node_modules/@anthropic-ai/claude-code/' in (_ai_cli_legacy_claude.stat.lnk_source | default(''))"
+
+- name: Install Claude Code from signed repository
+  ansible.builtin.apt:
+    name: claude-code
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+- name: Detect AVX2 for OpenCode on AMD64
+  ansible.builtin.command:
+    argv: [grep, -qw, avx2, /proc/cpuinfo]
+  register: _ai_cli_avx2
+  changed_when: false
+  failed_when: _ai_cli_avx2.rc not in [0, 1]
+  when: ansible_facts['architecture'] == 'x86_64'
+
+- name: Select OpenCode binary
+  ansible.builtin.set_fact:
+    _ai_cli_opencode_platform: >-
+      {{ 'arm64' if ansible_facts['architecture'] == 'aarch64'
+         else ('x64' if _ai_cli_avx2.rc == 0 else 'x64-baseline') }}
+
+- name: Download verified OpenCode binary package
+  ansible.builtin.get_url:
+    url: >-
+      https://registry.npmjs.org/@opencode/cli-linux-{{ _ai_cli_opencode_platform }}/-/cli-linux-{{ _ai_cli_opencode_platform }}-{{ OPENCODE_VERSION }}.tgz
+    dest: /var/cache/opencode-{{ _ai_cli_opencode_platform }}-{{ OPENCODE_VERSION }}.tgz
+    checksum: "{{ OPENCODE_CHECKSUMS[_ai_cli_opencode_platform] }}"
+    mode: '0644'
+  become: true
+
+- name: Create OpenCode installation directory
+  ansible.builtin.file:
+    path: /opt/opencode-{{ OPENCODE_VERSION }}-{{ _ai_cli_opencode_platform }}
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Install OpenCode binary
+  ansible.builtin.unarchive:
+    src: /var/cache/opencode-{{ _ai_cli_opencode_platform }}-{{ OPENCODE_VERSION }}.tgz
+    dest: /opt/opencode-{{ OPENCODE_VERSION }}-{{ _ai_cli_opencode_platform }}
+    remote_src: true
+    extra_opts: [--strip-components=1]
+    creates: /opt/opencode-{{ OPENCODE_VERSION }}-{{ _ai_cli_opencode_platform }}/bin/opencode
+  become: true
+
+- name: Link OpenCode command
+  ansible.builtin.file:
+    src: /opt/opencode-{{ OPENCODE_VERSION }}-{{ _ai_cli_opencode_platform }}/bin/opencode
+    dest: /usr/local/bin/opencode
+    state: link
+  become: true

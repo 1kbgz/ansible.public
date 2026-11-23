@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: pi
+  author: 1kbgz
+  description: Install pinned Pi coding agent binaries on macOS and Debian-family Linux
+  license: AGPL-3.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+  galaxy_tags:
+    - development

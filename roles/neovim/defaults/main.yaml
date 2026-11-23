@@ -1,5 +1,9 @@
 ---
 NEOVIM_VERSION: 0.12.5
+NEOVIM_FONT_FILES: []
+NEOVIM_FONT_DIRECTORY: >-
+  {{ ansible_facts['env']['HOME'] + '/Library/Fonts' if ansible_facts['os_family'] == 'Darwin'
+     else '/usr/local/share/fonts/neovim' }}
 NEOVIM_PACKAGES:
   x86_64:
     architecture: x86_64

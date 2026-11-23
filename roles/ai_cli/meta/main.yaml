@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: ai_cli
+  author: 1kbgz
+  description: Install Claude Code and OpenCode CLIs on Debian-family Linux
+  license: AGPL-3.0
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions: [all]
+    - name: Ubuntu
+      versions: [all]
+  galaxy_tags:
+    - development
